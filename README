@@ -1,0 +1,76 @@
+                    ---------------------------
+                    tempd: a temperature daemon
+                    ---------------------------
+
+    This package contains the source code of tempd: a temperature
+    daemon, based on libtrmc2, for driving the TRMC2 temperature
+    controller. It also has the code for trmc2shell, a non-network
+    shell for the TRMC2 speaking the same language as tempd.
+
+REQUIREMENTS
+
+    You need libtrmc2 and its associated header file Trmc.h installed
+    somewhere where your compiler can find them. If they are installed
+    somewhere where gcc won't look, you will have to edit the Makefile
+    and add the appropriate -I and -L options.
+
+    Additionally, trmc2shell requires libreadline and libtermcap.
+
+COMPILING
+
+    For tempd, just type `make'. If you want trmc2shell, type `make
+    trmc2shell'.
+
+RUNNING
+
+    Type `tempd -d' as root, then connect a client to /tmp/tempd-socket.
+
+    Or type `trmc2shell' as root and talk to it at the keyboard.
+
+FILES
+
+    README:             this file
+    protocol.html:      documentation of the tempd language
+    Makefile:           needed for `make'
+    constants.[ch], interpreter.[ch], io.[ch], parse.[ch]:
+                        source code common to tempd and trmc2shell
+    tempd.c:            source code of tempd
+    trmc2shell.c:       source code of trmc2shell
+
+BUGS
+
+    It doesn't work ;-). Well, not yet.
+
+    The programs won't try to initialize the TRMC2, therefore they don't
+    need root privileges, and there is no point in plugging in a TRMC2.
+    They do need libtrmc2 though. Their only use right now is to give
+    you a feeling of what they will be. For example:
+
+        $ ./trmc2shell 
+        trmc2> *idn?
+        tempd temperature server, Laboratoire Louis Néel, Jul 2004
+        trmc2> board:count?
+        trmc2> error?
+        _TRMC_NOT_INITIALIZED
+        trmc2> so:initialize:it:please!
+        trmc2> error?
+        NO_SUCH_COMMAND
+        trmc2> quit
+        $
+
+    You can also play at connecting a client to /tmp/tempd-socket and
+    have the same kind of dialog with tempd.
+
+    If you kill tempd instead of asking it to `quit', it will not remove
+    /tmp/fieldd-socket. Next time you try to run tempd, it will exit
+    immediately and you will see no error message... unless you look in
+    your system's logs:
+
+        # grep tempd /var/log/messages
+        Jul 16 22:18:05 bonet tempd: bind: Address already in use
+
+    Just remove the socket and restart tempd.
+
+AUTHOR
+
+    Edgar Bonet <bonet@grenoble.cnrs.fr>

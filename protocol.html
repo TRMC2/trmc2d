@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr"><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <title>tempd command set</title>
+    <style type="text/css">
+        body { background: white; font-family: sans-serif;
+            margin-left: 3%; margin-right: 3% }
+        h1 { text-align: center }
+        h1, h2, h3 { color: #cc0000 }
+        dl { margin-left: 2em }
+        code, blockquote, dt, td.l1, td.l2 {
+            font: inherit; color: #cc0000 }
+        table { border-collapse: collapse; empty-cells: show;
+            margin-left: 5%; margin-right: 5% }
+        td, th { border: solid black 1px }
+        th { background: #ffaaaa }
+        td.l1, td.l2 { background: #ffffcc }
+        td { background: #ffffee }
+        td.l2 { padding-left: 2em }
+    </style>
+</head><body>
+
+<h1>tempd command set</h1>
+
+<p>tempd speaks a SCPI-like language. Commands should be sent to tempd
+as lines of ASCII text on a network (or local, via Unix domain sockets)
+connection. Answers are sent by tempd as lines of ASCII text on the same
+connection. The input line terminator can be &lt;CR&gt; (ASCII carriage
+return), &lt;LF&gt; (ASCII line feed) or &lt;CRLF&gt; (CR followed by
+LF). On output, tempd sends &lt;LF&gt; as line terminator.</p>
+
+<h2>Syntax</h2>
+
+<p>Commands come in two forms: imperative and query. An imperative
+command consists of a command verb, followed by a space, followed by a
+sequence of comma-separated parameters:</p>
+
+<blockquote>word:word:...:word
+parameter, parameter,... parameter</blockquote>
+
+<p>The commas can be followed by optional white space. A query command
+consists of a command verb followed by a question mark:</p>
+
+<blockquote>word:word:...:word?</blockquote>
+
+<p>Command verbs are sequences of colon-separated words. Some of these
+words (like board or channel) can have a numeric suffix (to specify
+which board or channel the command will affect).</p>
+
+<h3>Examples</h3>
+
+<dl>
+<dt>board:count?</dt>
+<dd>queries the number of boards installed in the TRMC2</dd>
+<dt>board0:type?</dt>
+<dd>queries the type of the first board</dd>
+<dt>channel0:voltage:range 0.01</dt>
+<dd>sets the voltage range on the first channel to 10 mV</dd>
+<dt>channel0:voltage:range?</dt>
+<dd>queries the voltage range on the first channel</dd>
+<dt>channel1:measure?</dt>
+<dd>queries a measurement on the second channel</dd>
+</dl>
+
+<p>Some commands are query only while others have both query and
+imperative forms. In the tables below, the former are listed in query
+form and the latter in imperative form. Indentation in the first column
+of the tables means that what is listed is not the full command: you
+should add the last non-indented word as a prefix. For example, the
+right command for querying the type of board <i>i</i> is
+<code>board<i>i</i>:type?</code> (first table).</p>
+
+<h2>Board commands</h2>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>description</th>
+</tr>
+<tr>
+    <td class="l1">board:count?</td>
+    <td>Queries the number of boards</td>
+</tr><tr>
+    <td class="l1">board<i>i</i></td>
+    <td></td>
+</tr><tr>
+    <td class="l2">:type?</td>
+    <td>Queries the type of board <i>i</i></td>
+</tr><tr>
+    <td class="l2">:address?</td>
+    <td>Queries the address of board <i>i</i></td>
+</tr><tr>
+    <td class="l2">:status?</td>
+    <td>Queries the address of board <i>i</i></td>
+</tr><tr>
+    <td class="l2">:calibration file_name</td>
+    <td>Use the named file as a calibration table</td>
+</tr><tr>
+    <td class="l2">:vranges?</td>
+    <td>Queries the number of available voltage ranges</td>
+</tr><tr>
+    <td class="l2">:vrange<i>j</i>?</td>
+    <td>Queries the <i>j</i>-th voltage range</td>
+</tr><tr>
+    <td class="l2">:iranges?</td>
+    <td>Queries the number of available current ranges</td>
+</tr><tr>
+    <td class="l2">:irange<i>j</i>?</td>
+    <td>Queries the <i>j</i>-th current range</td>
+</tr>
+</table>
+
+<h2>Channel commands</h2>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>description</th>
+</tr>
+<tr>
+    <td class="l1">channel:count?</td>
+    <td>Queries the number of channels</td>
+</tr><tr>
+    <td class="l1">channel<i>i</i></td>
+    <td></td>
+</tr><tr>
+    <td class="l2">:voltage:range value</td>
+    <td>Sets the voltage range on channel <i>i</i></td>
+</tr><tr>
+    <td class="l2">:current:range value</td>
+    <td>Sets the current range on channel <i>i</i></td>
+</tr><tr>
+    <td class="l2">:addresses?</td>
+    <td>Queries the board and channel addresses</td>
+</tr><tr>
+    <td class="l2">:type?</td>
+    <td>Queries the channel type</td>
+</tr><tr>
+    <td class="l2">:mode</td>
+    <td>Sets the channel mode</td>
+</tr><tr>
+    <td class="l2">:averaging</td>
+    <td>Sets the number of data points that should be averaged</td>
+</tr><tr>
+    <td class="l2">:scrutationtime</td>
+    <td>Sets the number of data points that should be taken before
+    switching to another channel.</td>
+</tr><tr>
+    <td class="l2">:priority</td>
+    <td>Sets the priority mode</td>
+</tr><tr>
+    <td class="l2">:fifosize</td>
+    <td>Sets the size, in number of data points, that should be allocated
+    to the fifo buffer</td>
+</tr><tr>
+    <td class="l2">:conversion filename, function [, parameters]</td>
+    <td>Sets a conversion routine for converting raw data into
+    temperature (see below)</td>
+</tr><tr>
+    <td class="l2">:measure:format</td>
+    <td>Sets the output format of measurements</td>
+</tr><tr>
+    <td class="l2">:measure?</td>
+    <td>Queries a measurement</td>
+</tr>
+</table>
+
+<h2>Regulation commands</h2>
+
+<p>Temperature regulation is performed by a PID feedback loop. The
+regulation is done on a weighted average of one or more channels. A
+maximum of four channels can have non-zero weight.</p>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>description</th>
+</tr>
+<tr>
+    <td class="l1">regulation<i>i</i></td>
+    <td></td>
+</tr><tr>
+    <td class="l2">:setpoint</td>
+    <td>Set the temperature setpoint</td>
+</tr><tr>
+    <td class="l2">:p</td>
+    <td rowspan="3">Set the coefficients of the PID feedback loop</td>
+</tr><tr>
+    <td class="l2">:i</td>
+</tr><tr>
+    <td class="l2">:d</td>
+</tr><tr>
+    <td class="l2">:max</td>
+    <td>Set the maximum heating power</td>
+</tr><tr>
+    <td class="l2">:resistance</td>
+    <td>Set the resistance that should be used for power
+    calculations, it should match the resistance of the heating
+    element</td>
+</tr><tr>
+    <td class="l2">:channel<i>j</i>:weight</td>
+    <td>weight that should be given to channel <i>j</i> for the
+    estimation of the temperature</td>
+</tr>
+</table>
+
+<h2>Error commands</h2>
+
+<p>Error messages are not output immediately. Instead they are
+accumulated in an "error stack". They error on top of the stack can be
+queried with the <code>error?</code> command, which has the side effect
+of removing the error from the stack. If the stack is empty, this
+command returns "No errors". If the stack overflows, the topmost error
+is replaced by "Error stack overflow".</p>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>description</th>
+</tr>
+<tr>
+    <td class="l1">error?</td>
+    <td>Pops the error on top of the stack and returns it</td>
+</tr><tr>
+    <td class="l1">error</td>
+    <td></td>
+</tr><tr>
+    <td class="l2">:count?</td>
+    <td>Queries the number of errors in the stack</td>
+</tr><tr>
+    <td class="l2">:clear</td>
+    <td>Clears the stack</td>
+</tr>
+</table>
+
+<h2>Miscellaneous commands</h2>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>description</th>
+</tr>
+<tr>
+    <td class="l1">*idn?</td>
+    <td>Queries the server identification string</td>
+</tr><tr>
+    <td class="l1">quit</td>
+    <td>Stops the server</td>
+</tr>
+</table>
+
+</body></html>
