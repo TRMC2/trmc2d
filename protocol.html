@@ -31,19 +31,20 @@ connection. The input line terminator can be &lt;CR&gt; (ASCII carriage
 return), &lt;LF&gt; (ASCII line feed) or &lt;CRLF&gt; (CR followed by
 LF). On output, tempd sends &lt;LF&gt; as line terminator.</p>
 
+
 <h2>Syntax</h2>
 
 <p>Commands come in two forms: imperative and query. An imperative
 command consists of a command verb, followed by a space, followed by a
 sequence of comma-separated parameters:</p>
 
-<blockquote>word:word:...:word
-parameter, parameter,... parameter</blockquote>
+<blockquote><p>word:word:...:word
+parameter, parameter,... parameter</p></blockquote>
 
 <p>The commas can be followed by optional white space. A query command
 consists of a command verb followed by a question mark:</p>
 
-<blockquote>word:word:...:word?</blockquote>
+<blockquote><p>word:word:...:word?</p></blockquote>
 
 <p>Command verbs are sequences of colon-separated words. Some of these
 words (like board or channel) can have a numeric suffix (to specify
@@ -69,8 +70,11 @@ imperative forms. In the tables below, the former are listed in query
 form and the latter in imperative form. Indentation in the first column
 of the tables means that what is listed is not the full command: you
 should add the last non-indented word as a prefix. For example, the
-right command for querying the type of board <i>i</i> is
-<code>board<i>i</i>:type?</code> (first table).</p>
+command for querying the type of board <i>i</i> is
+<code>board<i>i</i>:type?</code> (first table). Brackets ([]) around a
+parameter mean the parameter is optional. <strong>Do not include the
+brackets</strong> in the commands you send to tempd.</p>
+
 
 <h2>Board commands</h2>
 
@@ -111,6 +115,7 @@ right command for querying the type of board <i>i</i> is
     <td>Queries the <i>j</i>-th current range</td>
 </tr>
 </table>
+
 
 <h2>Channel commands</h2>
 
@@ -155,7 +160,7 @@ right command for querying the type of board <i>i</i> is
     <td>Sets the size, in number of data points, that should be allocated
     to the fifo buffer</td>
 </tr><tr>
-    <td class="l2">:conversion filename, function [, parameters]</td>
+    <td class="l2">:conversion plugin, function [, parameters]</td>
     <td>Sets a conversion routine for converting raw data into
     temperature (see below)</td>
 </tr><tr>
@@ -166,6 +171,48 @@ right command for querying the type of board <i>i</i> is
     <td>Queries a measurement</td>
 </tr>
 </table>
+
+<p>In order to convert the raw measurement data (in ohms, volts or
+farads, depending on the sensor type) to temperature (in kelvins), tempd
+will need a conversion function. The function has to be loaded from a
+plugin, i.e. a shared library. You have the option to either
+<a href="plugins.html">write your own plugin</a> or use one of the two
+provided interpolation plugins. The general syntax for setting a
+conversion function is <code>channel<i>i</i>:conversion plugin, function
+[, parameters]</code> where</p>
+
+<dl>
+<dt>plugin</dt>
+<dd>is the name of the plugin</dd>
+<dt>function</dt>
+<dd>is the name of the conversion function</dd>
+<dt>parameters</dt>
+<dd>is an optional string with parameters that the conversion function
+may need.</dd>
+</dl>
+
+<p>For using the provided interpolation plugins, you need a table with
+(raw measurement, temperature) pairs in tab-separated-values format.
+Then send to tempd the command</p>
+
+<blockquote><p>channel<i>i</i>:conversion interpolate spline
+<i>table.tsv</i></p></blockquote>
+
+<p>where <code><i>table.tsv</i></code> is the name of the file
+containing those pairs. You will get cubic spline interpolation. You can
+replace <code>spline</code> by <code>akima</code> or <code>linear</code>
+in the previous command to get akima splines and linear interpolation
+respectively.</p>
+
+<p>If you didn't build the <code>interpolate</code> plugin (maybe
+because of lacking the GSL library), you can use
+<code>interpolate-linear</code> instead. This is used in the same
+fashion as <code>interpolate</code> except that it only provides the
+<code>linear</code> function. Thus you would tell tempd</p>
+
+<blockquote><p>channel<i>i</i>:conversion interpolate-linear linear
+<i>table.tsv</i></p></blockquote>
+
 
 <h2>Regulation commands</h2>
 
@@ -206,12 +253,13 @@ maximum of four channels can have non-zero weight.</p>
 </tr>
 </table>
 
+
 <h2>Error commands</h2>
 
-<p>Error messages are not output immediately. Instead they are
-accumulated in an "error stack". They error on top of the stack can be
+<p>Error messages are not output immediately, instead they are
+accumulated in an "error stack". The error on top of the stack can be
 queried with the <code>error?</code> command, which has the side effect
-of removing the error from the stack. If the stack is empty, this
+of removing that error from the stack. If the stack is empty, this
 command returns "No errors". If the stack overflows, the topmost error
 is replaced by "Error stack overflow".</p>
 
@@ -234,6 +282,7 @@ is replaced by "Error stack overflow".</p>
     <td>Clears the stack</td>
 </tr>
 </table>
+
 
 <h2>Miscellaneous commands</h2>
 

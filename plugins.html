@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr"><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <title>Writing plugins for tempd</title>
+    <style type="text/css">
+        body { background: white; font-family: sans-serif;
+            margin-left: 3%; margin-right: 3% }
+        h1 { text-align: center }
+        h1, h2 { color: #cc0000 }
+        code, blockquote { font: inherit; color: #cc0000 }
+        pre { background: #eeeeee; margin-left: 3%; margin-right: 3% }
+        .comment { color: #8800cc }
+        .cpp { color: #4400ee }
+    </style>
+</head><body>
+
+<h1>Writing plugins for tempd</h1>
+
+<h2>What for?</h2>
+
+<p>The TRMC2 measures resistances, voltages or capacitances. Some
+function is needed to convert these raw measurements into temperature.
+tempd allows the user to provide this function in the form of a dynamic
+library, henceforth called plugin. It will use this conversion function
+not only to output the measurement results in kelvins, but also to
+regulate the temperature to a given value.</p>
+
+<p>Before trying to write a conversion function and build the dynamic
+library, you should ask yourself if you really have to. A standard
+plugin is provided for doing interpolations of various kinds, so all you
+may need is a file with a set of closely spaced tabulated values. If you
+nevertheless need or want to write a plugin, please read on.</p>
+
+<h2>The API</h2>
+
+<p>You have to provide at least one C function with the following
+prototype:</p>
+
+<blockquote><p>double <i>convert</i>(double raw, void *data);</p></blockquote>
+
+<p>You name the function as you like. It should return the temperature
+in kelvins corresponding to the <code>raw</code> measurement supplied.
+If for whatever reason you cannot do the conversion (e.g. the
+<code>raw</code> measurement is out of bounds), you should return "Not a
+Number" (which can be written 0.0/0.0 in C). If you don't need any extra
+information to do the conversion, then you are done coding: you can
+safely ignore the <code>data</code> parameter and jump to the section on
+<a href="#compiling">compiling</a>.</p>
+
+<p>It is often the case, however, that you need some extra information,
+as your conversion law may rely on some parameters. Then you should
+devise a way of coding all those parameters in a single string without
+commas or spaces. The string could be a textual representation of your
+parameters, or the name of a file containing them (as is the case for
+the interpolation functions), or an URL, or whatever you can imagine:
+the client will be responsible for providing it. Then you have to write
+an initialization function for your converter with the following
+prototype:</p>
+
+<blockquote><p>void *<i>convert</i>_init(char *init_string);</p></blockquote>
+
+<p>The function should be named like your conversion function, with the
+suffix "_init" appended. If it exists, it will be called when the client
+sends the <code>channel<i>i</i>:conversion</code> command and will
+receive as <code>init_string</code> the third parameter of that command
+(or <code>NULL</code> if there was no third parameter). Your function
+should use the <code>init_string</code> to initialize all the data
+needed by the <code><i>convert</i>()</code> function.</p>
+
+<p>Keep in mind that the same conversion function could be used for
+different channels with different initialization data. That's why you
+should not store that data in static memory (i.e. global variables).
+Instead you should <code>malloc()</code> the memory you need and store
+the data there. Your initialization function should return a pointer to
+that data. This pointer will be supplied by tempd as the second
+parameter of every <code><i>convert</i>()</code> call. If initialization
+fails (and only in this case), you should return <code>NULL</code>.</p>
+
+<p>In case the client resends a <code>channel<i>i</i>:conversion</code>
+command for the same channel, the memory previously
+<code>malloc()</code>ated by the initialization function should be
+<code>free()</code>d before doing a new initialization. For this you
+will have to provide the following function:</p>
+
+<blockquote><p>void <i>convert</i>_cleanup(void *data);</p></blockquote>
+
+<p>named like your conversion function, with the suffix "_cleanup"
+appended. It will receive the pointer returned by your initialization
+function and will be responsible for <code>free()</code>ing the memory
+<code>malloc()</code>ated by it.</p>
+
+<h2 id="compiling">Compiling</h2>
+
+<p>Compile your plugin with</p>
+
+<blockquote><p>gcc -O -W -Wall -shared -nostartfiles
+<i>my_plugin</i>.c -o <i>my_plugin</i>.so</p></blockquote>
+
+<p>where <code><i>my_plugin</i>.c</code> is the name of the file
+containing your code. <code>-O -W -Wall</code> are the usual optimizing
+and warning options. <code>-shared</code> tells gcc to make a shared
+library. <code>-nostartfiles</code> will prevent it to add some
+bootstrap code needed by standalone executables but useless in a shared
+library.</p>
+
+<p>If your plugin is made of several C files, the last two options are
+only needed for the link phase, e.g.</p>
+
+<blockquote><p>gcc -O -W -Wall -c file1.c<br/>
+gcc -O -W -Wall -c file2.c<br/>
+gcc -shared -nostartfiles file1.o file2.o
+    -o <i>my_plugin</i>.so</p></blockquote>
+
+<h2>Using</h2>
+
+<p>Put you plugin in the tempd plugin directory (/usr/local/lib/tempd by
+default) and send to tempd the command:</p>
+
+<blockquote><p>channel<i>i</i>:conversion
+<i>my_plugin convert init_string</i></p></blockquote>
+
+<p>with <code><i>my_plugin</i></code>, <code><i>convert</i></code> and
+<code><i>init_string</i></code> replaced by the name of the plugin
+(without the ".so" extension), the name of the conversion function and
+the relevant initialization string.</p>
+
+<h2>Example</h2>
+
+<p>Here is a trivial one that does a linear conversion of the form
+<i>y = ax+b</i>. It expects init_string to be of the form "a:b" and
+does not check for errors.</p>
+
+<pre><code><span class="cpp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;</span>
+
+<span class="comment"
+>/* The initialization data will be represented by this. */</span>
+typedef struct {
+    double a, b;
+} linear_params;
+
+<span class="comment"
+>/* Read "a:b" in init_string and save a and b in malloc()ated memory. */</span>
+void *linear_init(char *init_string)
+{
+    linear_params *p = malloc(sizeof *p);
+    sscanf(init_string, "%lf:%lf", &amp;p-&gt;a, &amp;p-&gt;b);
+    return p;
+}
+
+<span class="comment">/* Return a*x+b. */</span>
+double linear(double x, void *data)
+{
+    linear_params *p = data;
+    return p-&gt;a * x + p-&gt;b;
+}
+
+<span class="comment"
+>/* free() the memory allocated by linear_init(). */</span>
+void linear_cleanup(void *data)
+{
+    free(data);
+}</code></pre>
+
+<p>For a more realistic example see the linear interpolation plugin in
+interpolate-linear.c.</p>
+
+</body></html>
