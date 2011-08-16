@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     client_t *cl;
     int ls;                         /* listening socket */
     struct sockaddr_un peer_addr;
-    int peer_lg;
+    unsigned int peer_lg;
     fd_set rfds, wfds;
     int max_fd;
     int ret;
