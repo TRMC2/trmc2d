@@ -7,7 +7,8 @@
 # Commands and options.
 
 CC=gcc
-CFLAGS=-ggdb -W -Wall
+CFLAGS=-ggdb -Wall -Wextra
+CFLAGS_SHARED=$(CFLAGS) -fPIC -shared -nostartfiles
 LDFLAGS=
 
 # This is the place to add -I or -L options if you need them to find
@@ -30,15 +31,14 @@ all:			tempd trmc2shell interpolate-linear.so
 
 # This is the main binary
 tempd:			tempd.o $(COMMON_OBJ)
-				$(CC) $(COMMON_LIBS) $^ $(LDLIBS) -o $@
+				$(CC) $^ $(COMMON_LIBS) -o $@
 
 # Stand-alone shell for the TRMC2
 trmc2shell:		trmc2shell.o $(COMMON_OBJ)
-				$(CC) $(COMMON_LIBS) $^ $(LDLIBS) -lreadline -ltermcap -o $@
+				$(CC) $^ $(COMMON_LIBS) -lreadline -ltermcap -o $@
 
 # Interpolation plugin based on GSL
-interpolate.so:	interpolate.c
-				$(CC) $(CFLAGS) -shared -nostartfiles -lgsl -lgslcblas $< -o $@
+interpolate.so:	LDLIBS=-lgsl -lgslcblas
 
 tags:			*.[ch]
 				ctags $^
@@ -47,7 +47,7 @@ tags:			*.[ch]
 				$(CC) $(CFLAGS) -c $<
 
 %.so:			%.c
-				$(CC) $(CFLAGS) -shared -nostartfiles $< -o $@
+				$(CC) $(CFLAGS_SHARED) $< $(LDLIBS) -o $@
 
 clean:
 				rm -f tempd trmc2shell tags *.o *.so core.*

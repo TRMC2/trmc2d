@@ -1,9 +1,5 @@
 /*
  * interpolate.c: tempd plugin for interpolation, based on GSL.
- *
- * Compile with:
- *    gcc -O -W -Wall -shared -nostartfiles \
- *    interpolate.c -lgsl -lgslcblas -o interpolate.so
  */
 
 #include <stdio.h>

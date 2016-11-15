@@ -1,9 +1,5 @@
 /*
  * interpolate-linear.c: tempd plugin for linear interpolation.
- *
- * Compile with:
- *    gcc -O -W -Wall -shared -nostartfiles \
- *    interpolate-linear.c -o interpolate-linear.so
  */
 
 #include <stdio.h>
