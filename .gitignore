@@ -1,0 +1,8 @@
+# List of generated files & patterns to exclude from version control.
+
+tags
+*.o
+interpolate.so
+interpolate-linear.so
+tempd
+trmc2shell
