@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/stat.h>
+#include <netinet/ip.h>
 #include "io.h"
 
 /* Array of clients. */
@@ -40,40 +41,71 @@ static char *socket_name;
 static void unlink_socket(void) { unlink(socket_name); }
 
 /*
- * Get a listen()ing socket ready to accept() a connection.
- * Returns -1 on error.
+ * Get a listening socket ready to accept() a connection.
+ * 'domain' should be either:
+ *  - AF_UNIX for a Unix domain socket:
+ *      - 'port' is ignored
+ *      - 'name' is the socket file name
+ *  - AF_INET for a TCP port:
+ *      - 'port' is the port number
+ *      - 'name' is ignored.
+ * Returns -1 on error, the listening socket on success.
  */
-int get_socket(char *name)
+int get_socket(int domain, int port, char *name)
 {
     int s;
-    struct sockaddr_un my_addr;
+    union {
+        struct sockaddr    any;
+        struct sockaddr_un unix_;  // 'unix' is a numeric constant
+        struct sockaddr_in inet;
+    } my_addr;
+    size_t address_size;
     int err;
 
-    socket_name = name;
-
-    /* Get a socket. */
-    s = socket(PF_UNIX, SOCK_STREAM, 0);
-    if (s == -1) { syslog(LOG_ERR, "socket: %m\n"); return -1; }
-
-    /* bind() it. */
-    my_addr.sun_family = AF_UNIX;
-    strcpy(my_addr.sun_path, socket_name);
-    err = bind(s, (struct sockaddr *) &my_addr, sizeof my_addr);
-    if (err == -1) { syslog(LOG_ERR, "bind: %m\n"); return -1; }
-
-    /* We want to unlink the named socket at program termination. */
-    err = atexit(unlink_socket);
-    if (err) {
-        syslog(LOG_ERR, "atexit failed\n");
-        unlink_socket();
+    /* Sanity check. */
+    if (domain != AF_UNIX && domain != AF_INET) {
+        syslog(LOG_ERR, "Communication domain not supported\n");
         return -1;
     }
 
-    /* Make sure clients can connect to us. */
-    err = chmod(socket_name, 0666);
-    if (err) {
-        syslog(LOG_ERR, "chmod failed\n");
-        return -1;
+    /* Get a socket. */
+    s = socket(domain, SOCK_STREAM, 0);
+    if (s == -1) { syslog(LOG_ERR, "socket: %m\n"); return -1; }
+
+    /* bind() it. */
+    switch (domain) {
+        case AF_UNIX:
+            my_addr.unix_.sun_family = AF_UNIX;
+            strcpy(my_addr.unix_.sun_path, name);
+            address_size = sizeof my_addr.unix_;
+            break;
+        case AF_INET:
+            my_addr.inet.sin_family = AF_INET;
+            my_addr.inet.sin_port = htons(port);
+            my_addr.inet.sin_addr.s_addr = INADDR_ANY;
+            address_size = sizeof my_addr.inet;
+            break;
+    }
+    err = bind(s, &my_addr.any, address_size);
+    if (err == -1) { syslog(LOG_ERR, "bind: %m\n"); return -1; }
+
+    if (domain == AF_UNIX) {
+
+        /* We want to unlink the named socket at program termination. */
+        socket_name = name;
+        err = atexit(unlink_socket);
+        if (err) {
+            syslog(LOG_ERR, "atexit failed\n");
+            unlink_socket();
+            return -1;
+        }
+
+        /* Make sure clients can connect to us. */
+        err = chmod(name, 0666);
+        if (err) {
+            syslog(LOG_ERR, "chmod failed\n");
+            return -1;
+        }
     }
 
     /* listen() to one client at a time. */

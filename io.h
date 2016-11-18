@@ -25,8 +25,8 @@ extern client_t client[MAX_CLIENTS];
 /* Get a free slot from the above array. */
 client_t *get_client_slot(void);
 
-/* Get a Unix listening socket. */
-int get_socket(char *name);
+/* Get a listening socket. */
+int get_socket(int domain, int port, char *name);
 
 /* Queue message in the client output buffer. */
 void queue_output(client_t *cl, char *fmt, ...);

@@ -27,14 +27,16 @@
 #endif
 
 
-static char *optstring = "hsd";
-
 static char *cmdline_help =
 "Usage: tempd [-h] [-s] [-d]\n"
 "Options:\n"
-"    -h    print this message\n"
-"    -s    shell mode (talk to stdin/stdout)\n"
-"    -d    go to the background\n";
+"    -h       print this message\n"
+"    -s       shell mode (talk to stdin/stdout)\n"
+"    -p port  bind to TCP port\n"
+"    -d       go to the background\n"
+"Default is to bind to Unix socket " SOCKET_NAME "\n";
+
+static char *optstring = "hsp:d";
 
 #define FD_SET_M(fd, set) do { FD_SET(fd, set); \
         max_fd = fd>max_fd ? fd : max_fd; } while (0)
@@ -42,10 +44,12 @@ static char *cmdline_help =
 int main(int argc, char *argv[])
 {
     int opt;
+    int domain = AF_UNIX;
+    int port = 0;
     int i;
     client_t *cl;
     int ls;                         /* listening socket */
-    struct sockaddr_un peer_addr;
+    struct sockaddr peer_addr;
     unsigned int peer_lg;
     fd_set rfds, wfds;
     int max_fd;
@@ -61,6 +65,10 @@ int main(int argc, char *argv[])
             cl->active = 1;
             cl->in = 0;
             cl->out = 1;
+            break;
+        case 'p':
+            domain = AF_INET;
+            port = atoi(optarg);
             break;
         case 'd':
             if (fork()) _exit(EXIT_SUCCESS);
@@ -84,7 +92,7 @@ int main(int argc, char *argv[])
     }
 
     /* Get a listening socket. */
-    ls = get_socket(SOCKET_NAME);
+    ls = get_socket(domain, port, SOCKET_NAME);
     if (ls == -1) return EXIT_FAILURE;
 
     do {
@@ -113,7 +121,7 @@ int main(int argc, char *argv[])
         if (FD_ISSET(ls, &rfds)) {
             peer_lg = sizeof peer_addr;
             cl->in = cl->out =
-                accept(ls, (struct sockaddr *) &peer_addr, &peer_lg);
+                accept(ls, &peer_addr, &peer_lg);
             if (cl->in == -1) {
                 syslog(LOG_ERR, "accept: %m\n");
                 return EXIT_FAILURE;
