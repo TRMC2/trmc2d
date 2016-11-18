@@ -61,7 +61,7 @@ BUGS
 
         $ ./trmc2shell 
         trmc2> *idn?
-        tempd temperature server, Laboratoire Louis Néel, Jul 2004
+        tempd temperature server, Institut NEEL, Nov 2016
         trmc2> board:count?
         trmc2> error?
         _TRMC_NOT_INITIALIZED

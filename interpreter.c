@@ -20,7 +20,7 @@
 #include "plugin.h"
 
 /* Instrument identification. */
-#define IDN "tempd temperature server, Laboratoire Louis Néel, Jul 2004\n"
+#define IDN "tempd temperature server, Institut NEEL, Nov 2016\n"
 
 #ifdef __gnu_linux__
 # define unused(x) x __attribute__((unused))
