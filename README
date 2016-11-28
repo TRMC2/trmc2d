@@ -33,7 +33,7 @@ COMPILING
 
 RUNNING
 
-    Type `tempd -d' as root, then connect a client to /tmp/tempd-socket.
+    Type `tempd -d' as root, then connect a client to TCP port 5025.
 
     Or type `trmc2shell' as root and talk to it at the keyboard.
 
@@ -71,11 +71,12 @@ BUGS
         trmc2> quit
         $
 
-    You can also play at connecting a client to /tmp/tempd-socket and
-    have the same kind of dialog with tempd.
+    You can also `telnet localhost 5025` and have the same kind of
+    dialog with tempd.
 
-    If you kill tempd instead of asking it to `quit', it will not remove
-    /tmp/fieldd-socket. Next time you try to run tempd, it will exit
+    You can optionally use a Unix domain socket instead of a TCP port
+    but then, if you kill tempd instead of asking it to `quit', it will
+    not remove the socket. Next time you try to run tempd, it will exit
     immediately and you will see no error message... unless you look in
     your system's logs:
 

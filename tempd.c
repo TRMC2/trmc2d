@@ -1,11 +1,10 @@
 /*
- * tempd: the temperature daemon, based on libtrmc2, with code stolen
- * from fieldd.
+ * tempd: TRMC2 temperature daemon.
  *
- * This program controls the TRMC2 temperature controller. At
- * initialization it opens a Unix socket in /tmp/tempd-socket (#define
- * SOCKET_NAME for overriding) and listens for ASCII-formatted commands
- * sent over it.
+ * This program controls a TRMC2 temperature controller. At
+ * initialization, it binds to a TCP port (default: 5025) or,
+ * optionally, a Unix domain socket. It then accepts SCPI-like
+ * commands from connected clients.
  *
  * This program has to be installed suid root in order to gain access to
  * the I/O space of the serial port and to get real-time scheduling
@@ -23,21 +22,17 @@
 #include "interpreter.h"
 #include "io.h"
 
-#ifndef SOCKET_NAME
-# define SOCKET_NAME "/tmp/tempd-socket"
-#endif
-
-
 static const char cmdline_help[] =
-"Usage: tempd [-h] [-s] [-d]\n"
+"Usage: tempd [-h] [-s] [-p port] [-u name] [-d]\n"
 "Options:\n"
 "    -h       print this message\n"
 "    -s       shell mode (talk to stdin/stdout)\n"
-"    -p port  bind to TCP port\n"
+"    -p port  bind to the specified TCP port\n"
+"    -u name  bind to a Unix domain socket with the given name\n"
 "    -d       go to the background\n"
-"Default is to bind to Unix socket " SOCKET_NAME "\n";
+"Default is to bind to TCP port 5025 (aka scpi-raw).\n";
 
-static const char optstring[] = "hsp:d";
+static const char optstring[] = "hsp:u:d";
 
 #define FD_SET_M(fd, set) do { FD_SET(fd, set); \
         max_fd = fd>max_fd ? fd : max_fd; } while (0)
@@ -45,7 +40,8 @@ static const char optstring[] = "hsp:d";
 int main(int argc, char *argv[])
 {
     int opt;
-    int port = 0;
+    int port = 5025;
+    const char *socket_name = NULL;
     int i;
     client_t *cl;
     int ls;                         /* listening socket */
@@ -54,8 +50,8 @@ int main(int argc, char *argv[])
         struct sockaddr_un un;      /*  - Unix domain   */
         struct sockaddr_in in;      /*  - TCP           */
     } peer_addr;
-    int domain = AF_UNIX;
-    socklen_t peer_lg = sizeof(struct sockaddr_un);
+    int domain = AF_INET;
+    socklen_t peer_lg = sizeof(struct sockaddr_in);
     fd_set rfds, wfds;
     int max_fd;
     int ret;
@@ -72,9 +68,16 @@ int main(int argc, char *argv[])
             cl->out = 1;
             break;
         case 'p':
-            domain = AF_INET;
-            peer_lg = sizeof(struct sockaddr_in);
+            if (socket_name) {
+                fputs(cmdline_help, stderr);
+                return EXIT_FAILURE;
+            }
             port = atoi(optarg);
+            break;
+        case 'u':
+            domain = AF_UNIX;
+            peer_lg = sizeof(struct sockaddr_un);
+            socket_name = optarg;
             break;
         case 'd':
             if (fork()) _exit(EXIT_SUCCESS);
@@ -98,7 +101,7 @@ int main(int argc, char *argv[])
     }
 
     /* Get a listening socket. */
-    ls = get_socket(domain, port, SOCKET_NAME);
+    ls = get_socket(domain, port, socket_name);
     if (ls == -1) return EXIT_FAILURE;
 
     do {
