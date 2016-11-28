@@ -18,6 +18,7 @@
 #include <syslog.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netinet/ip.h>
 #include "parse.h"
 #include "interpreter.h"
 #include "io.h"
@@ -44,13 +45,17 @@ static char *optstring = "hsp:d";
 int main(int argc, char *argv[])
 {
     int opt;
-    int domain = AF_UNIX;
     int port = 0;
     int i;
     client_t *cl;
     int ls;                         /* listening socket */
-    struct sockaddr peer_addr;
-    unsigned int peer_lg;
+    union {                         /* client socket:   */
+        struct sockaddr    any;     /*  - generic       */
+        struct sockaddr_un un;      /*  - Unix domain   */
+        struct sockaddr_in in;      /*  - TCP           */
+    } peer_addr;
+    int domain = AF_UNIX;
+    socklen_t peer_lg = sizeof(struct sockaddr_un);
     fd_set rfds, wfds;
     int max_fd;
     int ret;
@@ -68,6 +73,7 @@ int main(int argc, char *argv[])
             break;
         case 'p':
             domain = AF_INET;
+            peer_lg = sizeof(struct sockaddr_in);
             port = atoi(optarg);
             break;
         case 'd':
@@ -119,9 +125,8 @@ int main(int argc, char *argv[])
 
         /* accept() connection. */
         if (FD_ISSET(ls, &rfds)) {
-            peer_lg = sizeof peer_addr;
             cl->in = cl->out =
-                accept(ls, &peer_addr, &peer_lg);
+                accept(ls, &peer_addr.any, &peer_lg);
             if (cl->in == -1) {
                 syslog(LOG_ERR, "accept: %m\n");
                 return EXIT_FAILURE;
