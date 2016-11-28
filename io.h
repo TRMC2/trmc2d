@@ -26,10 +26,10 @@ extern client_t client[MAX_CLIENTS];
 client_t *get_client_slot(void);
 
 /* Get a listening socket. */
-int get_socket(int domain, int port, char *name);
+int get_socket(int domain, int port, const char *name);
 
 /* Queue message in the client output buffer. */
-void queue_output(client_t *cl, char *fmt, ...);
+void queue_output(client_t *cl, const char *fmt, ...);
 
 /*
  * The following functions may block. Use them only when select() says

@@ -37,7 +37,7 @@ client_t *get_client_slot(void)
 }
 
 /* Cleanup: unlink_socket() has to be registered with atexit(). */
-static char *socket_name;
+static const char *socket_name;
 static void unlink_socket(void) { unlink(socket_name); }
 
 /*
@@ -51,7 +51,7 @@ static void unlink_socket(void) { unlink(socket_name); }
  *      - 'name' is ignored.
  * Returns -1 on error, the listening socket on success.
  */
-int get_socket(int domain, int port, char *name)
+int get_socket(int domain, int port, const char *name)
 {
     int s;
     union {
@@ -116,7 +116,7 @@ int get_socket(int domain, int port, char *name)
 }
 
 /* Queue message in the client output buffer. */
-void queue_output(client_t *cl, char *fmt, ...)
+void queue_output(client_t *cl, const char *fmt, ...)
 {
     va_list ap;
     int available;

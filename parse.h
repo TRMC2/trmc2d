@@ -55,7 +55,7 @@ typedef int (*command_handler)(void *parse_data, int cmd_data,
  * node pointed by the entire command.
  */
 typedef struct _syntax_node {
-    char *name;                     /* node name */
+    const char *name;               /* node name */
     command_handler handler;        /* command handler */
     int data;                       /* command data */
     struct _syntax_node *child;     /* list of children */
@@ -66,7 +66,7 @@ typedef struct _syntax_node {
  * the handler. Returs the return code of the invoked handler or a
  * negative error code (see below) in case of parsing error.
  */
-int parse(char *command, syntax_tree *language, void *data);
+int parse(char *command, const syntax_tree *language, void *data);
 
 /* Error codes returned by the parser. */
 #define EMPTY_COMMAND    -1     /* empty command */

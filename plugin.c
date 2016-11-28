@@ -70,7 +70,7 @@ static int f31(double *x) { return f(x, 31); }
 static int f32(double *x) { return f(x, 32); }
 static int f33(double *x) { return f(x, 33); }
 
-static Etalon f_table[NB_CONVERSION_FCS] = {
+static const Etalon f_table[NB_CONVERSION_FCS] = {
     f00, f01, f02, f03, f04, f05, f06, f07, f08, f09, f10, f11, f12,
     f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24, f25,
     f26, f27, f28, f29, f30, f31, f32, f33

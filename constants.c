@@ -9,41 +9,41 @@
 #include "constants.h"
 #include "parse.h"      /* for parse_errors */
 
-define Com_names[] = {{"_COM1", 1}, {"_COM2", 2}, {NULL, 0}};
+define const Com_names[] = {{"_COM1", 1}, {"_COM2", 2}, {NULL, 0}};
 
-define Frequency_names[] = {
+define const Frequency_names[] = {
     {"_NOTBEATING", 0}, {"_50HZ", 1}, {"_60HZ", 2}, {NULL, 0}
 };
 
-define bywhat_names[] = {{"_BYINDEX", 1}, {"_BYADDRESS", 2}, {NULL, 0}};
+define const bywhat_names[] = {{"_BYINDEX", 1}, {"_BYADDRESS", 2}, {NULL, 0}};
 
-define BoardType_names[] = {
+define const BoardType_names[] = {
     {"_TYPEREGULMAIN", 0}, {"_TYPEREGULAUX", 1},
     {"_TYPEA", 2}, {"_TYPEB", 3}, {"_TYPEC", 4}, {"_TYPED", 5},
     {"_TYPEE", 6}, {"_TYPEF", 7}, {"_TYPEG", 8}, {NULL, 0}
 };
 
-define Mode_names[] = {
+define const Mode_names[] = {
     {"_INIT_MODE", -2}, {"_NOT_USED_MODE", -1}, {"_FIX_RANGE_MODE", 0},
     {"_FIX_CURRENT_MODE", 1}, {"_FIX_VOLTAGE_MODE", 2},
     {"_PRIORITY_CURRENT_MODE", 3}, {"_PRIORITY_VOLTAGE_MODE", 4},
     {"_SPECIAL_MODE", 5}, {NULL, 0}
 };
 
-define Priority_names[] = {
+define const Priority_names[] = {
     {"_NO_PRIORITY", 0}, {"_PRIORITY", 1}, {"_ALWAYS", 2}, {NULL, 0}
 };
 
-define Index_names[] = {
+define const Index_names[] = {
     {"_REGULMAINBOARD", 0},
     {"_REGULAUXBOARD", 1},
     {"_FIRSTBOARD", 2},
     {NULL, 0}
 };
 
-define tristate_names[] = {{"_AUTOMATIC", -1}, {"_NO", 0}, {"_YES", 1}};
+define const tristate_names[] = {{"_AUTOMATIC", -1}, {"_NO", 0}, {"_YES", 1}};
 
-define board_mode_names[] = {
+define const board_mode_names[] = {
     {"_CALIBRATION_FAILED", -1},
     {"_NORMAL_MODE", 0},
     {"_START_CALIBRATION_MODE", 2},
@@ -51,7 +51,7 @@ define board_mode_names[] = {
     {NULL, 0}
 };
 
-define error_codes[] = {
+define const error_codes[] = {
     {"_TIMER_NOT_RUNNING", 4},
     {"_TIMER_ALREADY_RUNNING", 3},
     {"_WRONG_RANGEINDEX", 2},
@@ -94,7 +94,7 @@ define error_codes[] = {
     {NULL, 0}
 };
 
-define parse_errors[] = {
+define const parse_errors[] = {
     {"EMPTY_COMMAND", EMPTY_COMMAND},
     {"TOO_MANY_TOKENS_IN_COMMAND", TOO_MANY_TOKENS_IN_COMMAND},
     {"NO_SUCH_COMMAND", NO_SUCH_COMMAND},
@@ -103,7 +103,7 @@ define parse_errors[] = {
 };
 
 /* Get the #defined value from the name. */
-int lookup(char *name, define *table)
+int lookup(const char *name, const define *table)
 {
     int i;
 
@@ -115,7 +115,7 @@ int lookup(char *name, define *table)
 }
 
 /* Get the #defined name from the value. */
-char *const_name(int value, define *table)
+const char *const_name(int value, const define *table)
 {
     int i;
     static char buffer[256];

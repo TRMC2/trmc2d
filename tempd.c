@@ -28,7 +28,7 @@
 #endif
 
 
-static char *cmdline_help =
+static const char cmdline_help[] =
 "Usage: tempd [-h] [-s] [-d]\n"
 "Options:\n"
 "    -h       print this message\n"
@@ -37,7 +37,7 @@ static char *cmdline_help =
 "    -d       go to the background\n"
 "Default is to bind to Unix socket " SOCKET_NAME "\n";
 
-static char *optstring = "hsp:d";
+static const char optstring[] = "hsp:d";
 
 #define FD_SET_M(fd, set) do { FD_SET(fd, set); \
         max_fd = fd>max_fd ? fd : max_fd; } while (0)

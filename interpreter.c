@@ -35,14 +35,14 @@
 
 #define MAX_ERRORS 256
 
-static char *error_stack[MAX_ERRORS];
+static const char *error_stack[MAX_ERRORS];
 static int error_sp = 0;
 
 /*
  * Push a static string on the error stack. Don't put '\n' at the end of
  * the string.
  */
-void push_error(char *err)
+void push_error(const char *err)
 {
     assert(error_sp >= 0 && error_sp <= MAX_ERRORS);
     if (error_sp == MAX_ERRORS)
@@ -351,7 +351,7 @@ static int quit(unused(void *client),
 
 #define END_OF_LIST {NULL, NULL, 0, NULL}
 
-syntax_tree trmc2_syntax[] = {
+const syntax_tree trmc2_syntax[] = {
     {"*idn", idn, 0, NULL},
     {"board", NULL, 0, (syntax_tree[]) {
         {"count", get_number, nb_boards, NULL},

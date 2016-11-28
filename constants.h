@@ -3,24 +3,24 @@
  */
 
 typedef struct {
-    char *name;
+    const char *name;
     int value;
 } define;
 
-extern define Com_names[];
-extern define Frequency_names[];
-extern define bywhat_names[];
-extern define BoardType_names[];
-extern define Mode_names[];
-extern define Priority_names[];
-extern define Index_names[];
-extern define tristate_names[];
-extern define board_mode_names[];
-extern define error_codes[];
-extern define parse_errors[];
+extern const define Com_names[];
+extern const define Frequency_names[];
+extern const define bywhat_names[];
+extern const define BoardType_names[];
+extern const define Mode_names[];
+extern const define Priority_names[];
+extern const define Index_names[];
+extern const define tristate_names[];
+extern const define board_mode_names[];
+extern const define error_codes[];
+extern const define parse_errors[];
 
 /* Get the #defined value from the name. */
-int lookup(char *name, define *table);
+int lookup(const char *name, const define *table);
 
 /* Get the #defined name from the value. */
-char *const_name(int value, define *table);
+const char *const_name(int value, const define *table);

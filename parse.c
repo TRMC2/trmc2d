@@ -32,14 +32,14 @@ static int split_suffix(char **token)
 }
 
 /* Parse the command according to the language. */
-int parse(char *command, syntax_tree *language, void *data)
+int parse(char *command, const syntax_tree *language, void *data)
 {
     char *token[MAX_TOKENS], *param[MAX_PARAMS];
     int suffix[MAX_TOKENS];
     parsed_command cmd = {0, 0, token, suffix, 0, param};
     char *p;
     int i;
-    syntax_tree *node, *last_node;
+    const syntax_tree *node, *last_node;
 
     /* Remove trailing garbage. */
     i = strlen(command);
