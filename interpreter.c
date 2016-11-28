@@ -349,6 +349,8 @@ static int quit(unused(void *client),
  * Language description.
  */
 
+#define END_OF_LIST {NULL, NULL, 0, NULL}
+
 syntax_tree trmc2_syntax[] = {
     {"*idn", idn, 0, NULL},
     {"board", NULL, 0, (syntax_tree[]) {
@@ -361,17 +363,17 @@ syntax_tree trmc2_syntax[] = {
         {"vrange", board_handler, b_vrange, NULL},
         {"iranges", board_handler, b_iranges, NULL},
         {"irange", board_handler, b_irange, NULL},
-        {NULL, NULL, 0, NULL}
+        END_OF_LIST
     }},
     {"channel", NULL, 0, (syntax_tree[]) {
         {"count", get_number, nb_channels, NULL},
         {"voltage", NULL, 0, (syntax_tree[]) {
             {"range", channel_handler, c_vrange, NULL},
-            {NULL, NULL, 0, NULL}
+            END_OF_LIST
         }},
         {"current", NULL, 0, (syntax_tree[]) {
             {"range", channel_handler, c_irange, NULL},
-            {NULL, NULL, 0, NULL}
+            END_OF_LIST
         }},
         {"addresses", channel_handler, c_address, NULL},
         {"type", channel_handler, c_type, NULL},
@@ -383,9 +385,9 @@ syntax_tree trmc2_syntax[] = {
         {"conversion", channel_handler, c_conversion, NULL},
         {"measure", channel_handler, measure, (syntax_tree[]) {
             {"format", channel_handler, format, NULL},
-            {NULL, NULL, 0, NULL}
+            END_OF_LIST
         }},
-        {NULL, NULL, 0, NULL}
+        END_OF_LIST
     }},
     {"regulation", NULL, 0, (syntax_tree[]) {
         {"setpoint", NULL, 0, NULL},
@@ -395,13 +397,13 @@ syntax_tree trmc2_syntax[] = {
         {"max", NULL, 0, NULL},
         {"resistance", NULL, 0, NULL},
         {"channel", NULL, 0, NULL},
-        {NULL, NULL, 0, NULL}
+        END_OF_LIST
     }},
     {"error", get_error, 0, (syntax_tree[]) {
         {"count", error_count, 0, NULL},
         {"clear", clear_errors, 0, NULL},
-        {NULL, NULL, 0, NULL}
+        END_OF_LIST
     }},
     {"quit", quit, 0, NULL},
-    {NULL, NULL, 0, NULL}
+    END_OF_LIST
 };
