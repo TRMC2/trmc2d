@@ -19,6 +19,14 @@
 
 #define NB_CONVERSION_FCS 34
 
+typedef struct {
+    int used;           /* slot of the table used? */
+    void *plugin;       /* handle returned by dlopen() */
+    double (*convert)(double, void*);
+    void (*cleanup)(void*);
+    void *data;
+} conversion_t;
+
 static conversion_t conversion[NB_CONVERSION_FCS];
 
 static int f(double *x, int n)
