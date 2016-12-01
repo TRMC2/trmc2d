@@ -6,6 +6,9 @@
 ########################################################################
 # Commands and options.
 
+# Comment-out if libreadline is not available.
+WITH_READLINE = yes
+
 CC=gcc
 CFLAGS=-ggdb -Wall -Wextra
 CFLAGS_SHARED=$(CFLAGS) -fPIC -shared -nostartfiles
@@ -15,6 +18,10 @@ LDFLAGS=
 # libtrmc2. For example, if libtrmc2 is in /usr/local you would use:
 #CFLAGS+=-I/usr/local/include
 #LDFLAGS=-L/usr/local/lib
+
+ifdef WITH_READLINE
+    trmc2shell.o: CFLAGS += -DUSE_READLINE
+endif
 
 
 ########################################################################

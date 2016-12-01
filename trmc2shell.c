@@ -4,12 +4,48 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include "constants.h"
 #include "parse.h"
 #include "interpreter.h"
 #include "io.h"
+
+#ifdef USE_READLINE
+
+    #include <readline/readline.h>
+    #include <readline/history.h>
+
+#else  /* if !defined(USE_READLINE) */
+
+    /*
+     * Naive replacement for libreadline, with no fancy line editing.
+     */
+
+    #include <string.h>
+    #define LINE_LENGTH 1024
+
+    char *readline(const char *prompt)
+    {
+        fputs(prompt, stdout);
+        char * line = malloc(LINE_LENGTH);
+        char * ret = fgets(line, LINE_LENGTH, stdin);
+
+        /* Return NULL if EOF on empty line. */
+        if (!ret) {
+            free(line);
+            return NULL;
+        }
+
+        /* Remove trailing '\n'. */
+        char * eol = line + strlen(line) - 1;
+        if (*eol == '\n') *eol = '\0';
+
+        return line;
+    }
+
+    /* History not supported. */
+    void add_history(const char *string) { (void) string; }
+
+#endif  /* if !defined(USE_READLINE) */
 
 /* Read lines on stdin and send them to parse(). */
 int main(void)
