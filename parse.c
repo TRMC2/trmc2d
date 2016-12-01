@@ -39,7 +39,7 @@ int parse(char *command, const syntax_tree *language, void *data)
     parsed_command cmd = {0, 0, token, suffix, 0, param};
     char *p;
     int i;
-    const syntax_tree *node, *last_node;
+    const syntax_tree *node, *last_node = NULL;
 
     /* Remove trailing garbage. */
     i = strlen(command);

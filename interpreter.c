@@ -107,23 +107,19 @@ static int get_number(void *client, int cmd_data, parsed_command *cmd)
 {
     int ret;
     int n;
-    int (*trmc_function)(int*);
 
     assert(client != NULL);
     assert(cmd->n_tok == 2);
+    assert(cmd_data == nb_boards || cmd_data == nb_channels);
     if (cmd->query != 1 || cmd->suffix[0] != -1
             || cmd->suffix[1] != -1 || cmd->n_param != 0) {
         push_error("Malformed count command");
         return 1;
     }
-    switch (cmd_data) {
-        case nb_boards:
-            trmc_function = GetNumberOfBoardTRMC;
-            break;
-        case nb_channels:
-            trmc_function = GetNumberOfChannelTRMC;
-    }
-    ret = trmc_function(&n);
+    if (cmd_data == nb_boards)
+        ret = GetNumberOfBoardTRMC(&n);
+    else  /* cmd_data == nb_channels */
+        ret = GetNumberOfChannelTRMC(&n);
     if (ret) {
         push_error(const_name(ret, error_codes));
         return 1;
