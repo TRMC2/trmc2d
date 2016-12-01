@@ -21,6 +21,7 @@
 #include "parse.h"
 #include "interpreter.h"
 #include "io.h"
+#include "shell.h"
 
 static const char cmdline_help[] =
 "Usage: tempd [-h] [-s] [-p port] [-u name] [-d]\n"
@@ -62,11 +63,7 @@ int main(int argc, char *argv[])
             fputs(cmdline_help, stdout);
             return EXIT_SUCCESS;
         case 's':
-            cl = get_client_slot();
-            cl->active = 1;
-            cl->in = 0;
-            cl->out = 1;
-            break;
+            return shell();
         case 'p':
             if (socket_name) {
                 fputs(cmdline_help, stderr);

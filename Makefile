@@ -19,30 +19,26 @@ LDFLAGS=
 #CFLAGS+=-I/usr/local/include
 #LDFLAGS=-L/usr/local/lib
 
-ifdef WITH_READLINE
-    trmc2shell.o: CFLAGS += -DUSE_READLINE
-endif
-
 
 ########################################################################
-# Files common to tempd and trmc2shell.
 
-COMMON_OBJ=io.o interpreter.o parse.o constants.o plugin.o
-COMMON_LIBS=-ltrmc2 -ldl -lm
+OBJS = tempd.o trmc2shell.o io.o interpreter.o parse.o constants.o plugin.o
+LDLIBS = -ltrmc2 -ldl -lm
+
+ifdef WITH_READLINE
+    CFLAGS += -DUSE_READLINE
+    LDLIBS += -lreadline -ltermcap
+endif
 
 
 ########################################################################
 # Rules.
 
-all:			tempd trmc2shell interpolate-linear.so
+all:			tempd interpolate-linear.so
 
 # This is the main binary
-tempd:			tempd.o $(COMMON_OBJ)
-				$(CC) $^ $(COMMON_LIBS) -o $@
-
-# Stand-alone shell for the TRMC2
-trmc2shell:		trmc2shell.o $(COMMON_OBJ)
-				$(CC) $^ $(COMMON_LIBS) -lreadline -ltermcap -o $@
+tempd:			$(OBJS)
+				$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 # Interpolation plugin based on GSL
 interpolate.so:	LDLIBS=-lgsl -lgslcblas
@@ -57,7 +53,7 @@ tags:			*.[ch]
 				$(CC) $(CFLAGS_SHARED) $< $(LDLIBS) -o $@
 
 clean:
-				rm -f tempd trmc2shell tags *.o *.so core.*
+				rm -f tempd tags *.o *.so core.*
 
 
 ########################################################################
@@ -67,6 +63,6 @@ constants.o:	constants.h parse.h
 interpreter.o:	parse.h constants.h interpreter.h io.h
 io.o:			io.h
 parse.o:		parse.h
-tempd.o:		parse.h interpreter.h io.h plugin.h
-trmc2shell.o:	constants.h parse.h interpreter.h io.h plugin.h
+tempd.o:		parse.h interpreter.h io.h shell.h
+trmc2shell.o:	constants.h parse.h interpreter.h io.h shell.h
 plugin.o:		plugin.h

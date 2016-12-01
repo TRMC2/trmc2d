@@ -8,6 +8,7 @@
 #include "parse.h"
 #include "interpreter.h"
 #include "io.h"
+#include "shell.h"
 
 #ifdef USE_READLINE
 
@@ -48,7 +49,7 @@
 #endif  /* if !defined(USE_READLINE) */
 
 /* Read lines on stdin and send them to parse(). */
-int main(void)
+int shell(void)
 {
     client_t *tty;
     char *line;
