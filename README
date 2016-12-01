@@ -4,9 +4,8 @@
 
     This package contains the source code of tempd: a temperature
     daemon, based on libtrmc2, for driving the TRMC2 temperature
-    controller. It also has the code for trmc2shell, a non-network shell
-    for the TRMC2 speaking the same language as tempd, and for a couple
-    of plugins (interpolate-linear.so and interpolate.so) to convert raw
+    controller. It also has the code for a couple of plugins
+    (interpolate-linear.so and interpolate.so) to convert raw
     measurements to temperature by interpolating tabulated values.
 
 REQUIREMENTS
@@ -16,8 +15,8 @@ REQUIREMENTS
     are installed somewhere gcc won't look, you will have to edit the
     Makefile and add the appropriate -I and -L options.
 
-    If you want to build trmc2shell, you will also need libreadline and
-    libtermcap, which a quite standanrd.
+    For having readline support in tempd's shell mode, you will also
+    need libreadline and libtermcap, which a quite standard.
 
     For the interpolate.so plugin, you will need GSL, the GNU Scientific
     Library, available from <URL:http://www.gnu.org/software/gsl/>. The
@@ -25,8 +24,10 @@ REQUIREMENTS
 
 COMPILING
 
-    Just type `make'. You will get tempd, trmc2shell and
-    interpolate-linear.so.
+    If you do *not* want readline support in tempd, comment out the line
+    `WITH_READLINE = yes' in the Makefile.
+
+    Then type `make'. You will get tempd and interpolate-linear.so.
 
     If you have GSL and want to make interpolate.so, type `make
     interpolate.so'.
@@ -35,31 +36,34 @@ RUNNING
 
     Type `tempd -d' as root, then connect a client to TCP port 5025.
 
-    Or type `trmc2shell' as root and talk to it at the keyboard.
+    Or type `tempd -s' as root and talk to it at the keyboard.
 
 FILES
 
     README:             this file
-    protocol.html:      documentation of the tempd language
-    plugins.html:       documentation on writing plugins
+    doc/:               documentation directory
+        protocol.html:  the tempd language
+        plugins.html:   writing plugins
     Makefile:           needed for `make'
-    constants.[ch], interpreter.[ch], io.[ch], parse.[ch]:
-                        source code common to tempd and trmc2shell
-    tempd.c:            source code of tempd
-    trmc2shell.c:       source code of trmc2shell
     interpolate-linear.c:   sample plugin for linear interpolation
-    interpolate.c:      interpolation plugin gased on GSL
+    interpolate.c:      interpolation plugin based on GSL
+    *.c, *.h:           (save for the two above) source code of tempd
 
 BUGS
 
     It doesn't work ;-). Well, not yet.
 
-    The programs won't try to initialize the TRMC2, therefore they don't
-    need root privileges, and there is no point in plugging in a TRMC2.
-    They do need libtrmc2 though. Their only use right now is to give
-    you a feeling of what they will be. For example:
+    Many commands are not yet implemented: they generate the error
+    `NO_HANDLER' if they are recognized, and `NO_SUCH_COMMAND'
+    otherwise. See interpreter.c for a list of what is actually
+    available.
 
-        $ ./trmc2shell 
+    The program won't try to initialize the TRMC2 unless you issue the
+    `start' command. Then you can run it with neither root privileges
+    nor a real TRMC2, just to get a feeling of the language. For
+    example:
+
+        $ ./tempd -s
         trmc2> *idn?
         tempd temperature server, Institut NEEL, Nov 2016
         trmc2> board:count?
