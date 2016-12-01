@@ -22,7 +22,7 @@ LDFLAGS=
 
 ########################################################################
 
-OBJS = tempd.o trmc2shell.o io.o interpreter.o parse.o constants.o plugin.o
+OBJS = tempd.o shell.o io.o interpreter.o parse.o constants.o plugin.o
 LDLIBS = -ltrmc2 -ldl -lm
 
 ifdef WITH_READLINE
@@ -64,5 +64,5 @@ interpreter.o:	parse.h constants.h interpreter.h io.h
 io.o:			io.h
 parse.o:		parse.h
 tempd.o:		parse.h interpreter.h io.h shell.h
-trmc2shell.o:	constants.h parse.h interpreter.h io.h shell.h
+shell.o:		constants.h parse.h interpreter.h io.h shell.h
 plugin.o:		plugin.h
