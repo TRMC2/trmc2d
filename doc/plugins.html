@@ -95,22 +95,24 @@ function and will be responsible for <code>free()</code>ing the memory
 
 <p>Compile your plugin with</p>
 
-<blockquote><p>gcc -O -W -Wall -shared -nostartfiles
+<blockquote><p>gcc -O2 -Wall -Wextra -fPIC -shared -nostartfiles
 <i>my_plugin</i>.c -o <i>my_plugin</i>.so</p></blockquote>
 
 <p>where <code><i>my_plugin</i>.c</code> is the name of the file
-containing your code. <code>-O -W -Wall</code> are the usual optimizing
-and warning options. <code>-shared</code> tells gcc to make a shared
-library. <code>-nostartfiles</code> will prevent it to add some
-bootstrap code needed by standalone executables but useless in a shared
-library.</p>
+containing your code, <code>-O2 -Wall -Wextra</code> are the usual
+optimization and warning options, <code>-fPIC -shared</code> tell gcc to
+make a shared library, and <code>-nostartfiles</code> prevents it from
+adding some bootstrap code needed by standalone executables but useless
+in a shared library.</p>
 
-<p>If your plugin is made of several C files, the last two options are
-only needed for the link phase, e.g.</p>
+<p>If your plugin is made of several C files, you should provide the
+<code>-fPIC</code> option both in the compilation and the link phase,
+whereas the last two options are only needed for the link phase,
+e.g.</p>
 
-<blockquote><p>gcc -O -W -Wall -c file1.c<br/>
-gcc -O -W -Wall -c file2.c<br/>
-gcc -shared -nostartfiles file1.o file2.o
+<blockquote><p>gcc -O2 -Wall -Wextra -fPIC -c file1.c<br/>
+gcc -O2 -Wall -Wextra -fPIC -c file2.c<br/>
+gcc -fPIC -shared -nostartfiles file1.o file2.o
     -o <i>my_plugin</i>.so</p></blockquote>
 
 <h2>Using</h2>
