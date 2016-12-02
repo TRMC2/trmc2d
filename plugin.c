@@ -84,7 +84,7 @@ static const Etalon f_table[NB_CONVERSION_FCS] = {
     f26, f27, f28, f29, f30, f31, f32, f33
 };
 
-char* plugindir = ".";
+char* plugindir = "plugins";
 
 /* argv = { plugin, convert_name [, init_data] } */
 Etalon convert_init(int argc, char **argv)

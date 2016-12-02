@@ -28,30 +28,26 @@ LDFLAGS =
 
 OBJS = tempd.o shell.o io.o interpreter.o parse.o constants.o plugin.o
 LDLIBS = -ltrmc2 -ldl -lm
-PLUGINS = interpolate-linear.so
-
-# Options for plugins.
-%.so:           CFLAGS += -fPIC -shared -nostartfiles
-%.so:           LDLIBS =
-interpolate.so: LDLIBS = -lgsl -lgslcblas -lm
 
 ifdef WITH_READLINE
     shell.o: CFLAGS += -DUSE_READLINE
     tempd:   LDLIBS += -lreadline -ltermcap
 endif
 
-ifdef WITH_GSL
-    PLUGINS += interpolate.so
-endif
+# Export to the `plugins' sub-make.
+export CC CFLAGS WITH_GSL
 
 
 ########################################################################
 # Rules.
 
-all:    tempd $(PLUGINS)
+all:    tempd plugins
 
 tempd:  $(OBJS)
 		$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+
+plugins:
+		$(MAKE) -C plugins
 
 tags:   *.[ch]
 		ctags $^
@@ -59,13 +55,11 @@ tags:   *.[ch]
 %.o:    %.c
 		$(CC) $(CFLAGS) -c $<
 
-%.so:   %.c
-		$(CC) $(CFLAGS) $< $(LDLIBS) -o $@
-
 clean:
-		rm -f tempd tags $(OBJS) $(PLUGINS) core.*
+		rm -f tempd tags $(OBJS) core.*
+		$(MAKE) -C plugins clean
 
-.PHONY: all clean
+.PHONY: all plugins clean
 
 
 ########################################################################
