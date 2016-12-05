@@ -29,6 +29,9 @@ client_t *get_client_slot(void);
 int get_socket(int domain, int port, const char *name);
 
 /* Queue message in the client output buffer. */
+#ifdef __GNUC__
+__attribute__((format(printf, 2, 3)))
+#endif
 void queue_output(client_t *cl, const char *fmt, ...);
 
 /*
