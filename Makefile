@@ -20,7 +20,7 @@ WITH_MATHEVAL = yes
 
 # Global options.
 CC      = gcc
-CFLAGS  = -O2 -ggdb -Wall -Wextra
+CFLAGS  = -std=gnu11 -O2 -ggdb -Wall -Wextra
 LDFLAGS =
 
 # This is the place to add -I or -L options if you need them to find
