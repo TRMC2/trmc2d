@@ -208,14 +208,42 @@ typedef struct {
     char *format;
 } channel_t;
 
-channel_t *channels_extra = NULL;
-int stored_channels = 0;
+/*
+ * Return a pointer to the channel_t struct associated to this channel.
+ * Allocate memory if needed.
+ *
+ * Warning: the data structure may be moved around by subsequent calls
+ * to this function.
+ */
+static channel_t *get_channel_extras(int index)
+{
+    static channel_t *channels;
+    static int allocated;
+    static int count;
+
+    /* See if we already have a slot allocated to this channel. */
+    for (int i = 0; i < count; i++) {
+        if (channels[i].index == index)
+            return &channels[i];
+    }
+
+    /* Add an extra element to the array. */
+    if (count == allocated) {
+        allocated += 16;
+        channels = realloc(channels, allocated * sizeof *channels);
+    }
+    channels[count].index = index;
+    channels[count].conversion = NULL;
+    channels[count].format = NULL;
+    return &channels[count++];
+}
 
 /* Handle channels by calling GetChannelTRMC() and SetChannelTRMC(). */
 static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
 {
     int ret, index;
     CHANNELPARAMETER channel;
+    channel_t *channel_extras;
 
     assert(client != NULL);
     index = cmd->suffix[0];
@@ -266,6 +294,12 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             queue_output(client, "%d\n", channel.FifoSize);
             break;
         case c_conversion:
+            channel_extras = get_channel_extras(index);
+            if (!channel_extras->conversion) {
+                push_error("Channel has no conversion.");
+                return 1;
+            }
+            queue_output(client, "%s\n", channel_extras->conversion);
             break;
         case format:
             break;
@@ -295,8 +329,29 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 channel.FifoSize = atoi(cmd->param[0]);
                 break;
             case c_conversion:
+
+                /* Remember the conversion parameters. */
+                channel_extras = get_channel_extras(index);
+                if (channel_extras->conversion)
+                    free(channel_extras->conversion);
+                size_t sz = 0;
+                for (int i = 0; i < cmd->n_param; i++)
+                    sz += strlen(cmd->param[i]) + 1;
+                channel_extras->conversion = malloc(sz);
+                channel_extras->conversion[0] = '\0';
+                for (int i = 0; i < cmd->n_param; i++) {
+                    strcat(channel_extras->conversion, cmd->param[i]);
+                    if (i < cmd->n_param - 1)
+                        strcat(channel_extras->conversion, " ");
+                }
+
+                /* Use the give conversion. */
                 if (channel.Etalon) convert_cleanup(channel.Etalon);
                 channel.Etalon = convert_init(cmd->n_param, cmd->param);
+                if (!channel.Etalon) {
+                    push_error("Conversion initialization failed.");
+                    return 1;
+                }
                 break;
             case format:
                 break;
