@@ -243,6 +243,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
 {
     int ret, index;
     CHANNELPARAMETER channel;
+    AMEASURE meas;
     channel_t *channel_extras;
 
     assert(client != NULL);
@@ -304,6 +305,16 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
         case format:
             break;
         case measure:
+            ret = ReadValueTRMC(index, &meas);
+            if (ret) {
+                push_error(const_name(ret, error_codes));
+                return 1;
+            }
+            if (channel.Etalon)
+                queue_output(client, "%g, %g\n",
+                        meas.MeasureRaw, meas.Measure);
+            else
+                queue_output(client, "%g\n", meas.MeasureRaw);
             break;
     } else {  /* !query */
         switch (cmd_data) {
