@@ -13,11 +13,15 @@ LDLIBS  =
 
 # Plugin-specific options.
 interpolate.so: LDLIBS = -lgsl -lgslcblas -lm
+expression.so:  LDLIBS = -lmatheval
 
 # List of plugins to build.
 PLUGINS = interpolate-linear.so
 ifdef WITH_GSL
     PLUGINS += interpolate.so
+endif
+ifdef WITH_MATHEVAL
+    PLUGINS += expression.so
 endif
 
 # Rules.

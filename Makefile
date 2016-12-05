@@ -7,10 +7,16 @@
 # User-accessible settings.
 
 # Comment-out if libreadline is not available.
+# Doing so will disable line editing facilities in shell mode.
 WITH_READLINE = yes
 
 # Comment-out if libgsl is not available.
+# Doing so will disable building interpolate.so.
 WITH_GSL = yes
+
+# Comment-out if libmatheval is not available.
+# Doing so will disable building expression.so.
+WITH_MATHEVAL = yes
 
 # Global options.
 CC      = gcc
@@ -35,7 +41,7 @@ ifdef WITH_READLINE
 endif
 
 # Export to the `plugins' sub-make.
-export CC CFLAGS WITH_GSL
+export CC CFLAGS WITH_GSL WITH_MATHEVAL
 
 
 ########################################################################

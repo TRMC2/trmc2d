@@ -176,10 +176,14 @@ brackets</strong> in the commands you send to tempd.</p>
 farads, depending on the sensor type) to temperature (in kelvins), tempd
 will need a conversion function. The function has to be loaded from a
 plugin, i.e. a shared library. You have the option to either
-<a href="plugins.html">write your own plugin</a> or use one of the two
-provided interpolation plugins. The general syntax for setting a
-conversion function is <code>channel<i>i</i>:conversion plugin, function
-[, parameters]</code> where</p>
+<a href="plugins.html">write your own plugin</a> or use one of the three
+provided plugins. The general syntax for setting a conversion function
+is</p>
+
+<blockquote><code>channel<i>i</i>:conversion plugin, function [,
+parameters]</code></blockquote>
+
+<p>where</p>
 
 <dl>
 <dt>plugin</dt>
@@ -212,6 +216,20 @@ fashion as <code>interpolate</code> except that it only provides the
 
 <blockquote><p>channel<i>i</i>:conversion interpolate-linear linear
 <i>table.tsv</i></p></blockquote>
+
+<p>For using the expression evaluation plugin, send the command</p>
+
+<blockquote><p>channel<i>i</i>:conversion expression literal
+<i>temperature_expression</i></p></blockquote>
+
+<p>where <code><i>temperature_expression</i></code> is the expression of
+the temperature. In this expression, the raw measurement should be
+called <code><i>x</i></code>.
+
+See the
+<a href="https://www.gnu.org/software/libmatheval/manual/libmatheval.html#evaluator_005fcreate">documentation
+of <code>evaluator_create</code></a>, from libmatheval, for the list of
+supported constants, functions and operators.
 
 
 <h2>Regulation commands</h2>

@@ -4,9 +4,11 @@
 
     This package contains the source code of tempd: a temperature
     daemon, based on libtrmc2, for driving the TRMC2 temperature
-    controller. It also has the code for a couple of plugins
-    (interpolate-linear.so and interpolate.so) to convert raw
-    measurements to temperature by interpolating tabulated values.
+    controller. It also has the code of three plugins for converting raw
+    measurements to temperature: interpolate-linear.so and
+    interpolate.so interpolate over tabulated values, while
+    expression.so accepts a conversion law written as a symbolic
+    expression.
 
 REQUIREMENTS
 
@@ -22,15 +24,37 @@ REQUIREMENTS
     Library, available from <URL:http://www.gnu.org/software/gsl/>. The
     simpler interpolate-linear.so does not have this dependency.
 
+    For the expression.so plugin, you will need libmatheval, available
+    from <URL:https://www.gnu.org/software/libmatheval/>.
+
+    On a Debian-like system, you could type
+
+      sudo apt-get install libreadline-dev libgsl-dev libmatheval-dev
+
+    to get all these dependencies but libtrmc2.
+
 COMPILING
 
-    If you do *not* want readline support in tempd, comment out the line
-    `WITH_READLINE = yes' in the Makefile.
+    The supplied Makefile assumes you have all of the above
+    dependencies. If this is not the case, edit the Makefile, look for
+    the following:
 
-    Then type `make'. You will get tempd and interpolate-linear.so.
+        # Comment-out if libreadline is not available.
+        # Doing so will disable line editing facilities in shell mode.
+        WITH_READLINE = yes
 
-    If you have GSL and want to make interpolate.so, type `make
-    interpolate.so'.
+        # Comment-out if libgsl is not available.
+        # Doing so will disable building interpolate.so.
+        WITH_GSL = yes
+
+        # Comment-out if libmatheval is not available.
+        # Doing so will disable building expression.so.
+        WITH_MATHEVAL = yes
+
+    and comment-out whichever lines you have to.
+
+    Then type `make'. You will get tempd and whatever plugins you did
+    not disable.
 
 RUNNING
 
@@ -45,9 +69,12 @@ FILES
         protocol.html:  the tempd language
         plugins.html:   writing plugins
     Makefile:           needed for `make'
-    interpolate-linear.c:   sample plugin for linear interpolation
-    interpolate.c:      interpolation plugin based on GSL
-    *.c, *.h:           (save for the two above) source code of tempd
+    plugins/            plugins for converting raw values to temperature
+        Makefile:              for building the plugins
+        interpolate-linear.c:  sample plugin for linear interpolation
+        interpolate.c:         interpolation based on GSL
+        expression.c:          expression evaluation
+    *.c, *.h:           source code of tempd
 
 BUGS
 
