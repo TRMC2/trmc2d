@@ -160,13 +160,15 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
     }
     if (cmd->query) switch (cmd_data) {
         case b_type:
-            queue_output(client, "%d\n", board.TypeofBoard);
+            queue_output(client, "%d (%s)\n", board.TypeofBoard,
+                    const_name(board.TypeofBoard, BoardType_names));
             break;
         case b_address:
             queue_output(client, "%d\n", board.AddressofBoard);
             break;
         case b_status:
-            queue_output(client, "%d\n", board.CalibrationStatus);
+            queue_output(client, "%d (%s)\n", board.CalibrationStatus,
+                    const_name(board.CalibrationStatus, board_mode_names));
             break;
         case b_calibration:
             queue_output(client, "%d\n", board.NumberofCalibrationMeasure);
@@ -280,7 +282,8 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             queue_output(client, "%d\n", channel.BoardType);
             break;
         case c_mode:
-            queue_output(client, "%d\n", channel.Mode);
+            queue_output(client, "%d (%s)\n", channel.Mode,
+                    const_name(channel.Mode, Mode_names));
             break;
         case c_avg:
             queue_output(client, "%d\n", channel.PreAveraging);
@@ -289,7 +292,8 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             queue_output(client, "%d\n", channel.ScrutationTime);
             break;
         case c_priority:
-            queue_output(client, "%d\n", channel.PriorityFlag);
+            queue_output(client, "%d (%s)\n", channel.PriorityFlag,
+                    const_name(channel.PriorityFlag, Priority_names));
             break;
         case c_fifosz:
             queue_output(client, "%d\n", channel.FifoSize);
