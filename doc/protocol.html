@@ -199,7 +199,7 @@ may need.</dd>
 (raw measurement, temperature) pairs in tab-separated-values format.
 Then send to tempd the command</p>
 
-<blockquote><p>channel<i>i</i>:conversion interpolate spline
+<blockquote><p>channel<i>i</i>:conversion interpolate, spline,
 <i>table.tsv</i></p></blockquote>
 
 <p>where <code><i>table.tsv</i></code> is the name of the file
@@ -214,12 +214,12 @@ because of lacking the GSL library), you can use
 fashion as <code>interpolate</code> except that it only provides the
 <code>linear</code> function. Thus you would tell tempd</p>
 
-<blockquote><p>channel<i>i</i>:conversion interpolate-linear linear
+<blockquote><p>channel<i>i</i>:conversion interpolate-linear, linear,
 <i>table.tsv</i></p></blockquote>
 
 <p>For using the expression evaluation plugin, send the command</p>
 
-<blockquote><p>channel<i>i</i>:conversion expression literal
+<blockquote><p>channel<i>i</i>:conversion expression, literal,
 <i>temperature_expression</i></p></blockquote>
 
 <p>where <code><i>temperature_expression</i></code> is the expression of
