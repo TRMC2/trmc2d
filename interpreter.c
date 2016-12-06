@@ -240,6 +240,73 @@ static channel_t *get_channel_extras(int index)
     return &channels[count++];
 }
 
+/*
+ * The format string is a NULL-terminated array of chars having the
+ * values below.
+ */
+enum { RAW = 1, MEAS, RANGEI, RANGEV, TIME, STATUS, NUMBER };
+
+/*
+ * Default formats. The first one is used if a conversion function has
+ * been defined.
+ */
+const char format_raw_meas[] = { RAW, MEAS, 0 };
+const char format_raw[]      = { RAW, 0 };
+
+/*
+ * Convert a single item of a user-supplied format specifier (a string)
+ * to our internal representation (a char). Returns 0 if invalid.
+ */
+static char parse_format_item(const char *fmt)
+{
+    if (strcasecmp(fmt, "raw")       == 0) return RAW;
+    if (strcasecmp(fmt, "converted") == 0) return MEAS;
+    if (strcasecmp(fmt, "range_i")   == 0) return RANGEI;
+    if (strcasecmp(fmt, "range_v")   == 0) return RANGEV;
+    if (strcasecmp(fmt, "time")      == 0) return TIME;
+    if (strcasecmp(fmt, "status")    == 0) return STATUS;
+    if (strcasecmp(fmt, "number")    == 0) return NUMBER;
+    return 0;  /* invalid */
+}
+
+/* Convert a format to a printable string and send it to the client. */
+static void queue_format(client_t *cl, const char *format)
+{
+    size_t n = strlen(format);
+    for (size_t i = 0; i < n; i++) {
+        switch (format[i]) {
+            case RAW:    queue_output(cl, "raw");       break;
+            case MEAS:   queue_output(cl, "converted"); break;
+            case RANGEI: queue_output(cl, "range_i");   break;
+            case RANGEV: queue_output(cl, "range_v");   break;
+            case TIME:   queue_output(cl, "time");      break;
+            case STATUS: queue_output(cl, "status");    break;
+            case NUMBER: queue_output(cl, "number");    break;
+        }
+        if (i < n - 1) queue_output(cl, ",");
+    }
+    queue_output(cl, "\n");
+}
+
+/* Send a measurement as per the requested format. */
+static void queue_measurement(client_t *cl, const char *format, AMEASURE *m)
+{
+    size_t n = strlen(format);
+    for (size_t i = 0; i < n; i++) {
+        switch (format[i]) {
+            case RAW:    queue_output(cl, "%g", m->MeasureRaw);  break;
+            case MEAS:   queue_output(cl, "%g", m->Measure);     break;
+            case RANGEI: queue_output(cl, "%g", m->ValueRangeI); break;
+            case RANGEV: queue_output(cl, "%g", m->ValueRangeV); break;
+            case TIME:   queue_output(cl, "%d", m->Time);        break;
+            case STATUS: queue_output(cl, "%d", m->Status);      break;
+            case NUMBER: queue_output(cl, "%d", m->Number);      break;
+        }
+        if (i < n - 1) queue_output(cl, ",");
+    }
+    queue_output(cl, "\n");
+}
+
 /* Handle channels by calling GetChannelTRMC() and SetChannelTRMC(). */
 static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
 {
@@ -307,6 +374,11 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             queue_output(client, "%s\n", channel_extras->conversion);
             break;
         case format:
+            channel_extras = get_channel_extras(index);
+            if (channel_extras->format)
+                queue_format(client, channel_extras->format);
+            else
+                queue_output(client, "No format defined.\n");
             break;
         case measure:
             ret = ReadValueTRMC(index, &meas);
@@ -314,11 +386,13 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 push_error(const_name(ret, error_codes));
                 return 1;
             }
-            if (channel.Etalon)
-                queue_output(client, "%g, %g\n",
-                        meas.MeasureRaw, meas.Measure);
-            else
-                queue_output(client, "%g\n", meas.MeasureRaw);
+            channel_extras = get_channel_extras(index);
+            const char *format = channel_extras->format;
+            if (!format) {
+                if (channel.Etalon) format = format_raw_meas;
+                else format = format_raw;
+            }
+            queue_measurement(client, format, &meas);
             break;
     } else {  /* !query */
         switch (cmd_data) {
@@ -369,6 +443,20 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 }
                 break;
             case format:
+                channel_extras = get_channel_extras(index);
+                char *format = malloc(cmd->n_param + 1);
+                if (channel_extras->format) free(channel_extras->format);
+                channel_extras->format = format;
+                for (int i = 0; i < cmd->n_param; i++) {
+                    format[i] = parse_format_item(cmd->param[i]);
+                    if (!format[i]) {
+                        push_error("Invalid format.");
+                        free(format);
+                        channel_extras->format = NULL;
+                        return 1;
+                    }
+                }
+                format[cmd->n_param] = '\0';
                 break;
         }
         ret = SetChannelTRMC(&channel);
