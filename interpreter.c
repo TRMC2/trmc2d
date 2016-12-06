@@ -357,7 +357,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 for (int i = 0; i < cmd->n_param; i++) {
                     strcat(channel_extras->conversion, cmd->param[i]);
                     if (i < cmd->n_param - 1)
-                        strcat(channel_extras->conversion, " ");
+                        strcat(channel_extras->conversion, ",");
                 }
 
                 /* Use the give conversion. */
