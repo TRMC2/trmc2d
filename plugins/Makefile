@@ -10,16 +10,16 @@ CFLAGS   ?= -O2 -ggdb -Wall -Wextra
 # Global options.
 CFLAGS  += -fPIC -shared -nostartfiles
 LDLIBS  =
+COMPILE = $(CC) $(CFLAGS) $< $(LDLIBS) -o $@
 
 # Plugin-specific options.
-interpolate.so: LDLIBS = -lgsl -lgslcblas -lm
+ifdef WITH_GSL
+    interpolate.so: LDLIBS = -lgsl -lgslcblas -lm
+endif
 expression.so:  LDLIBS = -lmatheval
 
 # List of plugins to build.
-PLUGINS = interpolate-linear.so
-ifdef WITH_GSL
-    PLUGINS += interpolate.so
-endif
+PLUGINS = interpolate.so
 ifdef WITH_MATHEVAL
     PLUGINS += expression.so
 endif
@@ -28,8 +28,14 @@ endif
 
 all:    $(PLUGINS)
 
+ifndef WITH_GSL
+    # Compile the version that does not require the GSL.
+    interpolate.so: interpolate-linear.c
+		$(COMPILE)
+endif
+
 %.so:   %.c
-		$(CC) $(CFLAGS) $< $(LDLIBS) -o $@
+		$(COMPILE)
 
 clean:
 		rm -f $(PLUGINS)

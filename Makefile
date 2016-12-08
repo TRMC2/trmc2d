@@ -11,7 +11,7 @@
 WITH_READLINE = yes
 
 # Comment-out if libgsl is not available.
-# Doing so will disable building interpolate.so.
+# Doing so will disable all methods but `linear' from interpolate.so.
 WITH_GSL = yes
 
 # Comment-out if libmatheval is not available.

@@ -185,7 +185,7 @@ brackets</strong> in the commands you send to tempd.</p>
 farads, depending on the sensor type) to temperature (in kelvins), tempd
 will need a conversion function. The function has to be loaded from a
 plugin, i.e. a shared library. You have the option to either
-<a href="plugins.html">write your own plugin</a> or use one of the three
+<a href="plugins.html">write your own plugin</a> or use one of the two
 provided plugins. The general syntax for setting a conversion function
 is</p>
 
@@ -204,7 +204,7 @@ parameters]</code></blockquote>
 may need.</dd>
 </dl>
 
-<p>For using the provided interpolation plugins, you need a table with
+<p>For using the provided interpolation plugin, you need a table with
 (raw measurement, temperature) pairs in tab-separated-values format.
 Then send to tempd the command</p>
 
@@ -215,16 +215,8 @@ Then send to tempd the command</p>
 containing those pairs. You will get cubic spline interpolation. You can
 replace <code>spline</code> by <code>akima</code> or <code>linear</code>
 in the previous command to get akima splines and linear interpolation
-respectively.</p>
-
-<p>If you didn't build the <code>interpolate</code> plugin (maybe
-because of lacking the GSL library), you can use
-<code>interpolate-linear</code> instead. This is used in the same
-fashion as <code>interpolate</code> except that it only provides the
-<code>linear</code> function. Thus you would tell tempd</p>
-
-<blockquote><p>channel<i>i</i>:conversion interpolate-linear, linear,
-<i>table.tsv</i></p></blockquote>
+respectively. If you didn't enable the GSL library while building the
+plugin, only linear interpolation is available.</p>
 
 <p>For using the expression evaluation plugin, send the command</p>
 

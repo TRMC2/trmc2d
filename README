@@ -4,11 +4,10 @@
 
     This package contains the source code of tempd: a temperature
     daemon, based on libtrmc2, for driving the TRMC2 temperature
-    controller. It also has the code of three plugins for converting raw
-    measurements to temperature: interpolate-linear.so and
-    interpolate.so interpolate over tabulated values, while
-    expression.so accepts a conversion law written as a symbolic
-    expression.
+    controller. It also has the code of two plugins for converting raw
+    measurements to temperature: interpolate.so interpolates over
+    tabulated values, while expression.so accepts a conversion law
+    written as a symbolic expression.
 
 REQUIREMENTS
 
@@ -20,9 +19,9 @@ REQUIREMENTS
     For having readline support in tempd's shell mode, you will also
     need libreadline and libtermcap, which a quite standard.
 
-    For the interpolate.so plugin, you will need GSL, the GNU Scientific
-    Library, available from <URL:http://www.gnu.org/software/gsl/>. The
-    simpler interpolate-linear.so does not have this dependency.
+    For interpolate.so to provide interpolation methods other than
+    linear, you will need GSL, the GNU Scientific Library, available
+    from <URL:http://www.gnu.org/software/gsl/>.
 
     For the expression.so plugin, you will need libmatheval, available
     from <URL:https://www.gnu.org/software/libmatheval/>.
@@ -44,7 +43,7 @@ COMPILING
         WITH_READLINE = yes
 
         # Comment-out if libgsl is not available.
-        # Doing so will disable building interpolate.so.
+        # Doing so will disable all methods but `linear' from interpolate.so.
         WITH_GSL = yes
 
         # Comment-out if libmatheval is not available.
@@ -53,8 +52,8 @@ COMPILING
 
     and comment-out whichever lines you have to.
 
-    Then type `make'. You will get tempd and whatever plugins you did
-    not disable.
+    Then type `make'. You will get tempd, interpolate.so and, unless you
+    disabled it, expression.so.
 
 RUNNING
 
@@ -71,7 +70,7 @@ FILES
     Makefile:           needed for `make'
     plugins/            plugins for converting raw values to temperature
         Makefile:              for building the plugins
-        interpolate-linear.c:  sample plugin for linear interpolation
+        interpolate-linear.c:  linear interpolation
         interpolate.c:         interpolation based on GSL
         expression.c:          expression evaluation
     *.c, *.h:           source code of tempd
