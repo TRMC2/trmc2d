@@ -12,6 +12,7 @@
         dl { margin-left: 2em }
         code, blockquote, dt, td.l1, td.l2 {
             font: inherit; color: #cc0000 }
+        pre { margin: 6px 3%; padding: 6px; background: #eee }
         table { border-collapse: collapse; empty-cells: show;
             margin-left: 5%; margin-right: 5% }
         td, th { border: solid black 1px }
@@ -178,6 +179,8 @@ brackets</strong> in the commands you send to tempd.</p>
 </tr>
 </table>
 
+<h3>Temperature conversion</h3>
+
 <p>In order to convert the raw measurement data (in ohms, volts or
 farads, depending on the sensor type) to temperature (in kelvins), tempd
 will need a conversion function. The function has to be loaded from a
@@ -230,12 +233,46 @@ fashion as <code>interpolate</code> except that it only provides the
 
 <p>where <code><i>temperature_expression</i></code> is the expression of
 the temperature. In this expression, the raw measurement should be
-called <code><i>x</i></code>.
+called <code><i>x</i></code>.</p>
 
-See the
+<p>See the
 <a href="https://www.gnu.org/software/libmatheval/manual/libmatheval.html#evaluator_005fcreate">documentation
 of <code>evaluator_create</code></a>, from libmatheval, for the list of
-supported constants, functions and operators.
+supported constants, functions and operators.</p>
+
+<p>More complex calibration laws can be provided from a file as a series
+of expressions to be evaluated sequentially. Each line in the file
+should have the form:</p>
+
+<blockquote><p><i>variable_name</i> = <i>expression</i></p></blockquote>
+
+<p>save for the last one that should only provide the expression for the
+temperature, with no variable assignment. Space on either side of the
+<code>=</code> sign is optional. Empty lines and lines starting with
+<code>#</code> are ignored. Each variable thus defined can be used in
+subsequent expressions. As before, the raw measurement is called
+<code><i>x</i></code>.</p>
+
+<p>Here is an example calibration law for an NTC thermistor:</p>
+
+<pre><code># Steinhart-Hart coefficients.
+a = 1.40e-3
+b = 2.37e-4
+c = 9.90e-8
+
+# Logarithm of the resistance.
+lnR = log(x)
+
+# 1/T as a function of ln(R).
+invT = a + b*lnR + c*lnR^3
+
+# Expression for the temperature.
+1/invT</code></pre>
+
+<p>To use such a file, issue the command</p>
+
+<blockquote><p>channel<i>i</i>:conversion expression, file,
+<i>filename</i></p></blockquote>
 
 
 <h2>Regulation commands</h2>
