@@ -25,10 +25,10 @@ static void *init(const gsl_interp_type *type, char *init_string)
     FILE *f;
     char s[1024];
     int items;      /* items read by sscanf() */
-    int n;          /* length of the tables */
+    int n = 0;      /* length of the tables */
     double *x = NULL;
     double *y = NULL;
-    int allocated;          /* length alocated to x and y */
+    int allocated = 0;      /* length alocated to x and y */
     spline_data *data = NULL;
     int err;
 
@@ -38,8 +38,6 @@ static void *init(const gsl_interp_type *type, char *init_string)
     if (!f) return NULL;
 
     /* Read by lines. */
-    n = allocated = 0;
-    x = y = NULL;
     while (fgets(s, sizeof s, f)) {
 
         /* Skip comments. */
@@ -50,34 +48,37 @@ static void *init(const gsl_interp_type *type, char *init_string)
             allocated += 1024;
             x = realloc(x, allocated * sizeof *x);
             y = realloc(y, allocated * sizeof *y);
-            if (!x || !y) goto bad;
+            if (!x || !y) goto error;
         }
 
         /* Parse. */
         items = sscanf(s, "%lf %lf", &x[n], &y[n]);
-        if (items != 2) goto bad;
+        if (items != 2) goto error;
         n++;
     }
 
     /* Init data. */
     data = malloc(sizeof *data);
-    if (!data) goto bad;
+    if (!data) goto error;
     data->spline = NULL;
     data->acc = gsl_interp_accel_alloc();
-    if (!data->acc) goto bad;
+    if (!data->acc) goto error;
     data->spline = gsl_spline_alloc(type, n);
-    if (!data->spline) goto bad;
+    if (!data->spline) goto error;
     err = gsl_spline_init(data->spline, x, y, n);
-    if (err) goto bad;
+    if (err) goto error;
 
+    fclose(f);
     free(x);
     free(y);
     return data;
 
-bad:
-    if (data) cleanup(data);
+    /* Exit path for erros generated while f is open. */
+error:
+    fclose(f);
     if (x) free(x);
     if (y) free(y);
+    cleanup(data);
     return NULL;
 }
 

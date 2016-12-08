@@ -27,7 +27,7 @@ void *linear_init(char *init_string)
     char s[1024];
     int n;
     conversion_table *t;
-    int allocated;          /* length alocated to t->x and t->y */
+    int allocated = 0;      /* length alocated to t->x and t->y */
 
     /* Open the file for reading. */
     if (!init_string) return NULL;
@@ -35,12 +35,8 @@ void *linear_init(char *init_string)
     if (!f) return NULL;
 
     /* Init the table. */
-    t = malloc(sizeof *t);
-    if (!t) return NULL;
-    t->n = 0;
-    t->x = t->y = NULL;
-    t->last = 0;
-    allocated = 0;
+    t = calloc(1, sizeof *t);
+    if (!t) goto error;
 
     /* Read by lines. */
     while (fgets(s, sizeof s, f)) {
@@ -53,18 +49,12 @@ void *linear_init(char *init_string)
             allocated += 1024;
             t->x = realloc(t->x, allocated * sizeof *t->x);
             t->y = realloc(t->y, allocated * sizeof *t->y);
-            if (!t->x || !t->y) {
-                linear_cleanup(t);
-                return NULL;
-            }
+            if (!t->x || !t->y) goto error;
         }
 
         /* Parse. */
         n = sscanf(s, "%lf %lf", &t->x[t->n], &t->y[t->n]);
-        if (n != 2) {
-            linear_cleanup(t);
-            return NULL;
-        }
+        if (n != 2) goto error;
         t->n++;
     }
 
@@ -74,7 +64,14 @@ void *linear_init(char *init_string)
         t->y = realloc(t->y, t->n * sizeof *t->y);
     }
 
+    fclose(f);
     return t;
+
+    /* Exit path for erros generated while f is open. */
+error:
+    fclose(f);
+    linear_cleanup(t);
+    return NULL;
 }
 
 /* Interpolation function. */
