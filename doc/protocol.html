@@ -348,9 +348,10 @@ is replaced by "Error stack overflow".</p>
     <td class="l1">*idn?</td>
     <td>Queries the server identification string</td>
 </tr><tr>
-    <td class="l1">start port, freq</td>
+    <td class="l1">start freq [, port]</td>
     <td>Starts the TRMC2 on the given serial port (1 or 2) at the given
-    frequency (0, 50 or 60), in hertz</td>
+    frequency (0, 50 or 60), in hertz. Default serial port is port 1.
+    The port number is irrelevant when running on a Raspberry Pi.</td>
 </tr><tr>
     <td class="l1">stop</td>
     <td>Stops the periodic timer driving the TRMC2</td>

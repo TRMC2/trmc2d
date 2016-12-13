@@ -487,7 +487,7 @@ static int idn(void *client, unused(int cmd_data), parsed_command *cmd)
     return 0;
 }
 
-/* syntax: "start serial_port_number, frequency" */
+/* syntax: "start frequency [, serial_port_number]" */
 static int start(unused(void *client), unused(int cmd_data),
         parsed_command *cmd)
 {
@@ -495,22 +495,14 @@ static int start(unused(void *client), unused(int cmd_data),
 
     /* Sanity check. */
     assert(cmd->n_tok == 1);
-    if (cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 2) {
+    if (cmd->query || cmd->suffix[0] != -1
+            || cmd->n_param < 1 || cmd->n_param > 2) {
         push_error("Malformed start command");
         return 1;
     }
 
     /* Parse parameters. */
-    int port = atoi(cmd->param[0]);
-    if (port == 1)
-        init.Com = _COM1;
-    else if (port == 2)
-        init.Com = _COM2;
-    else {
-        push_error("Invalid serial port number");
-        return 1;
-    }
-    int freq = atoi(cmd->param[1]);
+    int freq = atoi(cmd->param[0]);
     if (freq == 0)
         init.Frequency = _NOTBEATING;
     else if (freq == 50)
@@ -519,6 +511,15 @@ static int start(unused(void *client), unused(int cmd_data),
         init.Frequency = _60HZ;
     else {
         push_error("Invalid frequency");
+        return 1;
+    }
+    int port = cmd->n_param>1 ? atoi(cmd->param[1]) : 1;
+    if (port == 1)
+        init.Com = _COM1;
+    else if (port == 2)
+        init.Com = _COM2;
+    else {
+        push_error("Invalid serial port number");
         return 1;
     }
 
