@@ -319,7 +319,9 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
     index = cmd->suffix[0];
     if (index == -1 || cmd->suffix[1] != -1
             || (cmd->query && cmd->n_param != 0)
-            || (!cmd->query && cmd->n_param != 1)) {
+            || (!cmd->query &&
+                  ((cmd_data == c_conversion && cmd->n_param != 3)
+                || (cmd_data != c_conversion && cmd->n_param != 1)))) {
         push_error("Malformed channel command");
         return 1;
     }
