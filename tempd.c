@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <unistd.h>
 #include <syslog.h>
 #include <sys/socket.h>
@@ -119,6 +120,8 @@ int main(int argc, char *argv[])
         if (cl) FD_SET_M(ls, &rfds);
         ret = select(max_fd + 1, &rfds, &wfds, NULL, NULL);
         if (ret == -1) {
+            if (errno == EINTR)    /* Interrupted system call */
+                continue;
             syslog(LOG_ERR, "select: %m\n");
             return EXIT_FAILURE;
         }
