@@ -382,7 +382,12 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             break;
         case measure:
             ret = ReadValueTRMC(index, &meas);
-            if (ret) {
+            /*
+             * A positive return value is the number of data points in
+             * the FIFO before the read. A negative value is an error
+             * code.
+             */
+            if (ret < 0) {
                 push_error(const_name(ret, error_codes));
                 return 1;
             }
