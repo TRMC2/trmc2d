@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "constants.h"
 #include "parse.h"
 #include "interpreter.h"
@@ -44,6 +45,9 @@
     }
 
     /* History not supported. */
+    typedef struct { char *line; } HIST_ENTRY;
+    typedef struct { HIST_ENTRY **entries; int length; } HISTORY_STATE;
+    HISTORY_STATE *history_get_history_state(void) { return NULL; }
     void add_history(const char *string) { (void) string; }
 
 #endif  /* if !defined(USE_READLINE) */
@@ -61,7 +65,14 @@ int shell(void)
     tty->autoflush = 1;   /* don't have to call process_output() */
 
     while (!should_quit && (line = readline("trmc2> ")) != NULL) {
-        if (line && *line) add_history(line);
+        HISTORY_STATE *history = history_get_history_state();
+        HIST_ENTRY *last_entry = history && history->entries ?
+                history->entries[history->length-1] : NULL;
+        char *last_line = last_entry ? last_entry->line : NULL;
+        if (line && *line &&
+                (!last_line ||
+                (last_line && strcmp(line, last_line) != 0)))
+            add_history(line);
         ret = parse(line, trmc2_syntax, tty);
         free(line);
         if (ret < 0)
