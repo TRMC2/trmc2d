@@ -146,6 +146,7 @@ Etalon convert_init(int argc, char **argv)
     }
     else c->data = NULL;
 
+    c->used = 1;
     return f_table[n];
 }
 
