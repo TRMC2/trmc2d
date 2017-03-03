@@ -393,6 +393,10 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 push_error(const_name(ret, error_codes));
                 return 1;
             }
+            if (ret == 0) {
+                push_error("Measurement queue empty.");
+                return 1;
+            }
             channel_extras = get_channel_extras(index);
             const char *format = channel_extras->format;
             if (!format) {
