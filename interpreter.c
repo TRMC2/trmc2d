@@ -499,6 +499,79 @@ static int idn(void *client, unused(int cmd_data), parsed_command *cmd)
     return 0;
 }
 
+static int help(void *client, unused(int cmd_data), parsed_command *cmd)
+{
+    assert(client != NULL);
+    /* Do not insist on having '?' on the help command. */
+    if (cmd->suffix[0] != -1 || cmd->n_param > 1) {
+        push_error("Malformed help command");
+        return 1;
+    }
+    if (cmd->n_param == 0)
+        queue_output(client, "%s",
+        "*idn?          - return the server identification string\n"
+        "help? [topic]  - display help on topic (or this general help)\n"
+        "    available topics: board, channel, regulation\n"
+        "start freq [,port] - start the TRMC2\n"
+        "stop           - stop the periodic timer\n"
+        "board:count?   - return the number of boards\n"
+        "board<i>:      - prefix for commands addressing board i\n"
+        "channel:count? - return the number of channels\n"
+        "channel<i>:    - prefix for commands addressing channel i\n"
+        "regulation<i>: - prefix for commands addressing regulation i\n"
+        "error?         - pop and return last error from the error stack\n"
+        "error:count?   - return number of errors in the stack\n"
+        "error:clear    - clear the error stack\n"
+        "quit           - stop the server\n"
+        );
+    else if (strcmp(cmd->param[0], "board") == 0)
+        queue_output(client, "%s",
+        "Board commands (should be prefixed with 'board<i>:'):\n"
+        "type?            - return board type\n"
+        "address?         - return board address\n"
+        "status?          - return board status\n"
+        "calibration file - use the file as a calibration table\n"
+        "vranges?         - return the number of voltage ranges\n"
+        "vrange?          - list the voltage ranges\n"
+        "iranges?         - return the number of current ranges\n"
+        "irange?          - list the current ranges\n"
+        );
+    else if (strcmp(cmd->param[0], "channel") == 0)
+        queue_output(client, "%s",
+        "Channel commands (should be prefixed with 'channel<i>:'):\n"
+        "type?            - return type of board hosting the channel\n"
+        "address?         - return the board and channel address\n"
+        "voltage:range V  - set the voltage range\n"
+        "current:range I  - set the current range\n"
+        "mode N           - set the channel mode\n"
+        "averaging N      - set the averaging count\n"
+        "scrutationtime N - set the polling count\n"
+        "priority N       - set the priority mode\n"
+        "fifosize N       - set the FIFO size\n"
+        "conversion plugin,function,initialization - define a conversion\n"
+        "measure:format list - define the measurement format\n"
+        "    possible list items: raw, converted, range_i, range_v,\n"
+        "    time, status, number\n"
+        "measure?         - return a measurement\n"
+        );
+    else if (strcmp(cmd->param[0], "regulation") == 0)
+        queue_output(client, "%s",
+        "Regulation commands (should be prefixed with 'regulation<i>:'):\n"
+        "setpoint T   - define temperature setpoint\n"
+        "p val        - set P coefficient\n"
+        "i val        - set I coefficient\n"
+        "d val        - set D coefficient\n"
+        "max val      - set maximum heating power\n"
+        "resistance R - set resistance of heating resistor\n"
+        "channel<i>:weight W - set weight of channel i\n"
+        );
+    else {
+        push_error("Invalid help topic");
+        return 1;
+    }
+    return 0;
+}
+
 /* syntax: "start frequency [, serial_port_number]" */
 static int start(unused(void *client), unused(int cmd_data),
         parsed_command *cmd)
@@ -582,6 +655,7 @@ static int quit(unused(void *client),
 
 const syntax_tree trmc2_syntax[] = {
     {"*idn", idn, 0, NULL},
+    {"help", help, 0, NULL},
     {"start", start, 0, NULL},
     {"stop", stop, 0, NULL},
     {"board", NULL, 0, (syntax_tree[]) {
