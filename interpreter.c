@@ -348,7 +348,8 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                     channel.BoardAddress, channel.SubAddress);
             break;
         case c_type:
-            queue_output(client, "%d\n", channel.BoardType);
+            queue_output(client, "%d (%s)\n", channel.BoardType,
+                    const_name(channel.BoardType, BoardType_names));
             break;
         case c_mode:
             queue_output(client, "%d (%s)\n", channel.Mode,
