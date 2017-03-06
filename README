@@ -86,24 +86,24 @@ BUGS
     example session:
 
         $ sudo ./tempd -s
-        trmc2> *idn?
+        tempd> *idn?
         tempd temperature server, Institut NEEL, Nov 2016
-        trmc2> channel:count?
-        trmc2> error?
+        tempd> channel:count?
+        tempd> error?
         _TRMC_NOT_INITIALIZED
-        trmc2> start 50
-        trmc2> channel:count?
+        tempd> start 50
+        tempd> channel:count?
         7
-        trmc2> channel2:type?
+        tempd> channel2:type?
         6 (_TYPEE)
-        trmc2> channel2:voltage:range 1e-5
-        trmc2> channel2:current:range 8e-7
-        trmc2> channel2:priority 2
-        trmc2> channel2:priority?
+        tempd> channel2:voltage:range 1e-5
+        tempd> channel2:current:range 8e-7
+        tempd> channel2:priority 2
+        tempd> channel2:priority?
         2 (_ALWAYS)
-        trmc2> channel2:measure?
+        tempd> channel2:measure?
         9.89719
-        trmc2> quit
+        tempd> quit
         $
 
     You can also `telnet localhost 5025` and have the same kind of

@@ -64,7 +64,7 @@ int shell(void)
     tty->out = 1;         /* stdout */
     tty->autoflush = 1;   /* don't have to call process_output() */
 
-    while (!should_quit && (line = readline("trmc2> ")) != NULL) {
+    while (!should_quit && (line = readline("tempd> ")) != NULL) {
         HISTORY_STATE *history = history_get_history_state();
         HIST_ENTRY *last_entry = history && history->entries ?
                 history->entries[history->length-1] : NULL;
