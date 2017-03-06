@@ -100,7 +100,7 @@ static int clear_errors(unused(void *client),
 /* Command enumeration. */
 enum {nb_boards, nb_channels, b_type, b_address, b_status,
     b_calibration, b_vranges, b_vrange, b_iranges, b_irange, c_vrange,
-    c_irange, c_address, c_type, c_mode, c_avg, c_scrutation,
+    c_irange, c_address, c_type, c_mode, c_avg, c_polling,
     c_priority, c_fifosz, c_conversion, format, measure};
 
 static int get_number(void *client, int cmd_data, parsed_command *cmd)
@@ -358,7 +358,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
         case c_avg:
             queue_output(client, "%d\n", channel.PreAveraging);
             break;
-        case c_scrutation:
+        case c_polling:
             queue_output(client, "%d\n", channel.ScrutationTime);
             break;
         case c_priority:
@@ -420,7 +420,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             case c_avg:
                 channel.PreAveraging = atoi(cmd->param[0]);
                 break;
-            case c_scrutation:
+            case c_polling:
                 channel.ScrutationTime = atoi(cmd->param[0]);
                 break;
             case c_priority:
@@ -539,20 +539,20 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
     else if (strcmp(cmd->param[0], "channel") == 0)
         queue_output(client, "%s",
         "Channel commands (should be prefixed with 'channel<i>:'):\n"
-        "type?            - return type of board hosting the channel\n"
-        "address?         - return the board and channel address\n"
-        "voltage:range V  - set the voltage range\n"
-        "current:range I  - set the current range\n"
-        "mode N           - set the channel mode\n"
-        "averaging N      - set the averaging count\n"
-        "scrutationtime N - set the polling count\n"
-        "priority N       - set the priority mode\n"
-        "fifosize N       - set the FIFO size\n"
+        "type?           - return type of board hosting the channel\n"
+        "address?        - return the board and channel address\n"
+        "voltage:range V - set the voltage range\n"
+        "current:range I - set the current range\n"
+        "mode N          - set the channel mode\n"
+        "averaging N     - set the averaging count\n"
+        "polling N       - set the polling count\n"
+        "priority N      - set the priority mode\n"
+        "fifosize N      - set the FIFO size\n"
         "conversion plugin,function,initialization - define a conversion\n"
         "measure:format list - define the measurement format\n"
         "    possible list items: raw, converted, range_i, range_v,\n"
         "    time, status, number\n"
-        "measure?         - return a measurement\n"
+        "measure?        - return a measurement\n"
         );
     else if (strcmp(cmd->param[0], "regulation") == 0)
         queue_output(client, "%s",
@@ -684,7 +684,7 @@ const syntax_tree trmc2_syntax[] = {
         {"type", channel_handler, c_type, NULL},
         {"mode", channel_handler, c_mode, NULL},
         {"averaging", channel_handler, c_avg, NULL},
-        {"scrutationtime", channel_handler, c_scrutation, NULL},
+        {"polling", channel_handler, c_polling, NULL},
         {"priority", channel_handler, c_priority, NULL},
         {"fifosize", channel_handler, c_fifosz, NULL},
         {"conversion", channel_handler, c_conversion, NULL},
