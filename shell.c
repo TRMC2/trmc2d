@@ -64,7 +64,14 @@ int shell(void)
     tty->out = 1;         /* stdout */
     tty->autoflush = 1;   /* don't have to call process_output() */
 
-    while (!should_quit && (line = readline("tempd> ")) != NULL) {
+    const char *term = getenv("TERM");
+    const char *prompt;
+    if (term && strstr(term, "color"))
+        prompt = "\x1b[33mtempd\x1b[1;34m>\x1b[0m ";
+    else
+        prompt = "tempd> ";
+
+    while (!should_quit && (line = readline(prompt)) != NULL) {
         HISTORY_STATE *history = history_get_history_state();
         HIST_ENTRY *last_entry = history && history->entries ?
                 history->entries[history->length-1] : NULL;
