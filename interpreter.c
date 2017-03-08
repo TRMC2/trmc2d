@@ -99,8 +99,8 @@ static int clear_errors(unused(void *client),
 
 /* Command enumeration. */
 enum {nb_boards, nb_channels, b_type, b_address, b_status,
-    b_calibration, b_vranges, b_vrange, b_iranges, b_irange, c_vrange,
-    c_irange, c_address, c_type, c_mode, c_avg, c_polling,
+    b_calibration, b_vranges_cnt, b_vranges, b_iranges_cnt, b_iranges,
+    c_vrange, c_irange, c_address, c_type, c_mode, c_avg, c_polling,
     c_priority, c_fifosz, c_conversion, format, measure};
 
 static int get_number(void *client, int cmd_data, parsed_command *cmd)
@@ -140,7 +140,8 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
     BOARDPARAMETER board;
 
     assert(client != NULL);
-    assert(cmd->n_tok == 2);
+    assert(((cmd_data == b_vranges_cnt || cmd_data == b_iranges_cnt)
+            && cmd->n_tok == 3) || cmd->n_tok == 2);
     index = cmd->suffix[0];
     if (index == -1 || cmd->suffix[1] != -1
             || (cmd->query && cmd->n_param != 0)
@@ -173,21 +174,27 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
         case b_calibration:
             queue_output(client, "%d\n", board.NumberofCalibrationMeasure);
             break;
-        case b_vranges:
+        case b_vranges_cnt:
             queue_output(client, "%d\n", board.NumberofVRanges);
             break;
-        case b_iranges:
+        case b_iranges_cnt:
             queue_output(client, "%d\n", board.NumberofIRanges);
             break;
-        case b_vrange:
+        case b_vranges:
             for (i=0; i<board.NumberofVRanges; i++) {
-                queue_output(client, "%g\n", board.VRangesTable[i]);
+                queue_output(client, "%g", board.VRangesTable[i]);
+                if (i < board.NumberofVRanges - 1)
+                    queue_output(client, ",");
             }
+            queue_output(client, "\n");
             break;
-        case b_irange:
+        case b_iranges:
             for (i=0; i<board.NumberofIRanges; i++) {
-                queue_output(client, "%g\n", board.IRangesTable[i]);
+                queue_output(client, "%g", board.IRangesTable[i]);
+                if (i < board.NumberofIRanges - 1)
+                    queue_output(client, ",");
             }
+            queue_output(client, "\n");
     }
     else {      /* cmd_data == b_calibration */
     }
@@ -531,10 +538,10 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "address?         - return board address\n"
         "status?          - return board status\n"
         "calibration file - use the file as a calibration table\n"
-        "vranges?         - return the number of voltage ranges\n"
-        "vrange?          - list the voltage ranges\n"
-        "iranges?         - return the number of current ranges\n"
-        "irange?          - list the current ranges\n"
+        "vranges:count?   - return the number of voltage ranges\n"
+        "vranges?         - list the voltage ranges\n"
+        "iranges:count?   - return the number of current ranges\n"
+        "iranges?         - list the current ranges\n"
         );
     else if (strcmp(cmd->param[0], "channel") == 0)
         queue_output(client, "%s",
@@ -664,10 +671,14 @@ const syntax_tree trmc2_syntax[] = {
         {"address", board_handler, b_address, NULL},
         {"status", board_handler, b_status, NULL},
         {"calibration", board_handler, b_calibration, NULL},
-        {"vranges", board_handler, b_vranges, NULL},
-        {"vrange", board_handler, b_vrange, NULL},
-        {"iranges", board_handler, b_iranges, NULL},
-        {"irange", board_handler, b_irange, NULL},
+        {"vranges", board_handler, b_vranges, (syntax_tree[]) {
+            {"count", board_handler, b_vranges_cnt, NULL},
+            END_OF_LIST
+        }},
+        {"iranges", board_handler, b_iranges, (syntax_tree[]) {
+            {"count", board_handler, b_iranges_cnt, NULL},
+            END_OF_LIST
+        }},
         END_OF_LIST
     }},
     {"channel", NULL, 0, (syntax_tree[]) {
