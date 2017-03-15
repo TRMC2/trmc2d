@@ -325,17 +325,31 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
     assert(client != NULL);
     index = cmd->suffix[0];
     if (index == -1 || cmd->suffix[1] != -1
-            || (cmd->query && cmd->n_param != 0)
-            || (!cmd->query &&
-                  ((cmd_data == c_conversion && cmd->n_param != 3)
-                || (cmd_data != c_conversion && cmd->n_param != 1)))) {
+            || (cmd->query && cmd->n_param != 0)) {
         push_error("Malformed channel command");
         return 1;
     }
-    if (!cmd->query && (cmd_data == c_address
-                || cmd_data == c_type || cmd_data == measure)) {
-        push_error("Read-only parameter");
-        return 1;
+    if (!cmd->query) {
+        int n_param_ok;
+        switch (cmd_data) {
+            case c_address:
+            case c_type:
+            case measure:
+                push_error("Read-only parameter");
+                return 1;
+            case c_conversion:
+                n_param_ok = cmd->n_param == 2 || cmd->n_param == 3;
+                break;
+            case format:
+                n_param_ok = cmd->n_param >= 1;
+                break;
+            default:
+                n_param_ok = cmd->n_param == 1;
+        }
+        if (!n_param_ok) {
+            push_error("Bad parameter count");
+            return 1;
+        }
     }
     channel.Index = index;
     ret =  GetChannelTRMC(_BYINDEX, &channel);
