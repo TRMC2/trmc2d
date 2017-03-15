@@ -11,6 +11,10 @@
 #include "io.h"
 #include "shell.h"
 
+#define COLOR_TEMPD   "\1\x1b[33m\2"
+#define COLOR_ARROW   "\1\x1b[1;34m\2"
+#define COLOR_DEFAULT "\1\x1b[0m\2"
+
 #ifdef USE_READLINE
 
     #include <readline/readline.h>
@@ -67,7 +71,7 @@ int shell(void)
     const char *term = getenv("TERM");
     const char *prompt;
     if (term && strstr(term, "color"))
-        prompt = "\x1b[33mtempd\x1b[1;34m>\x1b[0m ";
+        prompt = COLOR_TEMPD"tempd"COLOR_ARROW">"COLOR_DEFAULT" ";
     else
         prompt = "tempd> ";
 
