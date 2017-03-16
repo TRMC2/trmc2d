@@ -29,12 +29,13 @@ static const char cmdline_help[] =
 "Options:\n"
 "    -h       print this message\n"
 "    -s       shell mode (talk to stdin/stdout)\n"
+"    -c       use a color prompt in shell mode\n"
 "    -p port  bind to the specified TCP port\n"
 "    -u name  bind to a Unix domain socket with the given name\n"
 "    -d       go to the background\n"
 "Default is to bind to TCP port 5025 (aka scpi-raw).\n";
 
-static const char optstring[] = "hsp:u:d";
+static const char optstring[] = "hscp:u:d";
 
 #define FD_SET_M(fd, set) do { FD_SET(fd, set); \
         max_fd = fd>max_fd ? fd : max_fd; } while (0)
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
 {
     int opt;
     int port = 5025;
+    int shell_mode = 0;
     const char *socket_name = NULL;
     int i;
     client_t *cl;
@@ -64,7 +66,11 @@ int main(int argc, char *argv[])
             fputs(cmdline_help, stdout);
             return EXIT_SUCCESS;
         case 's':
-            return shell();
+            shell_mode = 1;
+            break;
+        case 'c':
+            force_color_prompt = 1;
+            break;
         case 'p':
             if (socket_name) {
                 fputs(cmdline_help, stderr);
@@ -88,6 +94,8 @@ int main(int argc, char *argv[])
             fputs(cmdline_help, stderr);
             return EXIT_FAILURE;
     }
+    if (shell_mode)
+        return shell();
 
     /* Log messages via syslog. */
     openlog("tempd", 0, LOG_DAEMON);

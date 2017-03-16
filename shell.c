@@ -56,6 +56,8 @@
 
 #endif  /* if !defined(USE_READLINE) */
 
+int force_color_prompt;
+
 /* Read lines on stdin and send them to parse(). */
 int shell(void)
 {
@@ -70,7 +72,7 @@ int shell(void)
 
     const char *term = getenv("TERM");
     const char *prompt;
-    if (term && strstr(term, "color"))
+    if (force_color_prompt || (term && strstr(term, "color")))
         prompt = COLOR_TEMPD"tempd"COLOR_ARROW">"COLOR_DEFAULT" ";
     else
         prompt = "tempd> ";
