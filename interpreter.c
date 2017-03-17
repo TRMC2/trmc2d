@@ -20,7 +20,7 @@
 #include "plugin.h"
 
 /* Instrument identification. */
-#define IDN "tempd temperature server, Institut NEEL, Nov 2016\n"
+#define IDN "tempd temperature server, Institut NEEL, Mar 2017"
 
 #ifdef __gnu_linux__
 # define unused(x) x __attribute__((unused))
@@ -39,8 +39,8 @@ static const char *error_stack[MAX_ERRORS];
 static int error_sp = 0;
 
 /*
- * Push a static string on the error stack. Don't put '\n' at the end of
- * the string.
+ * Push a static string on the error stack. Don't put "\r\n" at the end
+ * of the string.
  */
 void push_error(const char *err)
 {
@@ -60,7 +60,7 @@ static int get_error(void *client,
         push_error("Malformed error command");
         return 1;
     }
-    queue_output(client, "%s\n",
+    queue_output(client, "%s\r\n",
             error_sp ? error_stack[--error_sp] : "No errors");
     return 0;
 }
@@ -75,7 +75,7 @@ static int error_count(void *client,
         push_error("Malformed error command");
         return 1;
     }
-    queue_output(client, "%d\n", error_sp);
+    queue_output(client, "%d\r\n", error_sp);
     return 0;
 }
 
@@ -124,7 +124,7 @@ static int get_number(void *client, int cmd_data, parsed_command *cmd)
         push_error(const_name(ret, error_codes));
         return 1;
     }
-    queue_output(client, "%d\n", n);
+    queue_output(client, "%d\r\n", n);
     return 0;
 }
 
@@ -161,24 +161,24 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
     }
     if (cmd->query) switch (cmd_data) {
         case b_type:
-            queue_output(client, "%d (%s)\n", board.TypeofBoard,
+            queue_output(client, "%d (%s)\r\n", board.TypeofBoard,
                     const_name(board.TypeofBoard, BoardType_names));
             break;
         case b_address:
-            queue_output(client, "%d\n", board.AddressofBoard);
+            queue_output(client, "%d\r\n", board.AddressofBoard);
             break;
         case b_status:
-            queue_output(client, "%d (%s)\n", board.CalibrationStatus,
+            queue_output(client, "%d (%s)\r\n", board.CalibrationStatus,
                     const_name(board.CalibrationStatus, board_mode_names));
             break;
         case b_calibration:
-            queue_output(client, "%d\n", board.NumberofCalibrationMeasure);
+            queue_output(client, "%d\r\n", board.NumberofCalibrationMeasure);
             break;
         case b_vranges_cnt:
-            queue_output(client, "%d\n", board.NumberofVRanges);
+            queue_output(client, "%d\r\n", board.NumberofVRanges);
             break;
         case b_iranges_cnt:
-            queue_output(client, "%d\n", board.NumberofIRanges);
+            queue_output(client, "%d\r\n", board.NumberofIRanges);
             break;
         case b_vranges:
             for (i=0; i<board.NumberofVRanges; i++) {
@@ -186,7 +186,7 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
                 if (i < board.NumberofVRanges - 1)
                     queue_output(client, ",");
             }
-            queue_output(client, "\n");
+            queue_output(client, "\r\n");
             break;
         case b_iranges:
             for (i=0; i<board.NumberofIRanges; i++) {
@@ -194,7 +194,7 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
                 if (i < board.NumberofIRanges - 1)
                     queue_output(client, ",");
             }
-            queue_output(client, "\n");
+            queue_output(client, "\r\n");
     }
     else {      /* cmd_data == b_calibration */
     }
@@ -292,7 +292,7 @@ static void queue_format(client_t *cl, const char *format)
         }
         if (i < n - 1) queue_output(cl, ",");
     }
-    queue_output(cl, "\n");
+    queue_output(cl, "\r\n");
 }
 
 /* Send a measurement as per the requested format. */
@@ -311,7 +311,7 @@ static void queue_measurement(client_t *cl, const char *format, AMEASURE *m)
         }
         if (i < n - 1) queue_output(cl, ",");
     }
-    queue_output(cl, "\n");
+    queue_output(cl, "\r\n");
 }
 
 /* Handle channels by calling GetChannelTRMC() and SetChannelTRMC(). */
@@ -359,35 +359,35 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
     }
     if (cmd->query) switch (cmd_data) {
         case c_vrange:
-            queue_output(client, "%g\n", channel.ValueRangeV);
+            queue_output(client, "%g\r\n", channel.ValueRangeV);
             break;
         case c_irange:
-            queue_output(client, "%g\n", channel.ValueRangeI);
+            queue_output(client, "%g\r\n", channel.ValueRangeI);
             break;
         case c_address:
-            queue_output(client, "%d, %d\n",
+            queue_output(client, "%d, %d\r\n",
                     channel.BoardAddress, channel.SubAddress);
             break;
         case c_type:
-            queue_output(client, "%d (%s)\n", channel.BoardType,
+            queue_output(client, "%d (%s)\r\n", channel.BoardType,
                     const_name(channel.BoardType, BoardType_names));
             break;
         case c_mode:
-            queue_output(client, "%d (%s)\n", channel.Mode,
+            queue_output(client, "%d (%s)\r\n", channel.Mode,
                     const_name(channel.Mode, Mode_names));
             break;
         case c_avg:
-            queue_output(client, "%d\n", channel.PreAveraging);
+            queue_output(client, "%d\r\n", channel.PreAveraging);
             break;
         case c_polling:
-            queue_output(client, "%d\n", channel.ScrutationTime);
+            queue_output(client, "%d\r\n", channel.ScrutationTime);
             break;
         case c_priority:
-            queue_output(client, "%d (%s)\n", channel.PriorityFlag,
+            queue_output(client, "%d (%s)\r\n", channel.PriorityFlag,
                     const_name(channel.PriorityFlag, Priority_names));
             break;
         case c_fifosz:
-            queue_output(client, "%d\n", channel.FifoSize);
+            queue_output(client, "%d\r\n", channel.FifoSize);
             break;
         case c_conversion:
             channel_extras = get_channel_extras(index);
@@ -395,14 +395,14 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 push_error("Channel has no conversion.");
                 return 1;
             }
-            queue_output(client, "%s\n", channel_extras->conversion);
+            queue_output(client, "%s\r\n", channel_extras->conversion);
             break;
         case format:
             channel_extras = get_channel_extras(index);
             if (channel_extras->format)
                 queue_format(client, channel_extras->format);
             else
-                queue_output(client, "No format defined.\n");
+                queue_output(client, "No format defined.\r\n");
             break;
         case measure:
             ret = ReadValueTRMC(index, &meas);
@@ -516,7 +516,7 @@ static int idn(void *client, unused(int cmd_data), parsed_command *cmd)
         push_error("Malformed *idn command");
         return 1;
     }
-    queue_output(client, IDN);
+    queue_output(client, "%s\r\n", IDN);
     return 0;
 }
 
@@ -530,61 +530,61 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
     }
     if (cmd->n_param == 0)
         queue_output(client, "%s",
-        "*idn?          - return the server identification string\n"
-        "help? [topic]  - display help on topic (or this general help)\n"
-        "    available topics: board, channel, regulation\n"
-        "start freq [,port] - start the TRMC2\n"
-        "stop           - stop the periodic timer\n"
-        "board:count?   - return the number of boards\n"
-        "board<i>:      - prefix for commands addressing board i\n"
-        "channel:count? - return the number of channels\n"
-        "channel<i>:    - prefix for commands addressing channel i\n"
-        "regulation<i>: - prefix for commands addressing regulation i\n"
-        "error?         - pop and return last error from the error stack\n"
-        "error:count?   - return number of errors in the stack\n"
-        "error:clear    - clear the error stack\n"
-        "quit           - stop the server\n"
+        "*idn?          - return the server identification string\r\n"
+        "help? [topic]  - display help on topic (or this general help)\r\n"
+        "    available topics: board, channel, regulation\r\n"
+        "start freq [,port] - start the TRMC2\r\n"
+        "stop           - stop the periodic timer\r\n"
+        "board:count?   - return the number of boards\r\n"
+        "board<i>:      - prefix for commands addressing board i\r\n"
+        "channel:count? - return the number of channels\r\n"
+        "channel<i>:    - prefix for commands addressing channel i\r\n"
+        "regulation<i>: - prefix for commands addressing regulation i\r\n"
+        "error?         - pop and return last error from the error stack\r\n"
+        "error:count?   - return number of errors in the stack\r\n"
+        "error:clear    - clear the error stack\r\n"
+        "quit           - stop the server\r\n"
         );
     else if (strcmp(cmd->param[0], "board") == 0)
         queue_output(client, "%s",
-        "Board commands (should be prefixed with 'board<i>:'):\n"
-        "type?            - return board type\n"
-        "address?         - return board address\n"
-        "status?          - return board status\n"
-        "calibration file - use the file as a calibration table\n"
-        "vranges:count?   - return the number of voltage ranges\n"
-        "vranges?         - list the voltage ranges\n"
-        "iranges:count?   - return the number of current ranges\n"
-        "iranges?         - list the current ranges\n"
+        "Board commands (should be prefixed with 'board<i>:'):\r\n"
+        "type?            - return board type\r\n"
+        "address?         - return board address\r\n"
+        "status?          - return board status\r\n"
+        "calibration file - use the file as a calibration table\r\n"
+        "vranges:count?   - return the number of voltage ranges\r\n"
+        "vranges?         - list the voltage ranges\r\n"
+        "iranges:count?   - return the number of current ranges\r\n"
+        "iranges?         - list the current ranges\r\n"
         );
     else if (strcmp(cmd->param[0], "channel") == 0)
         queue_output(client, "%s",
-        "Channel commands (should be prefixed with 'channel<i>:'):\n"
-        "type?           - return type of board hosting the channel\n"
-        "address?        - return the board and channel address\n"
-        "voltage:range V - set the voltage range\n"
-        "current:range I - set the current range\n"
-        "mode N          - set the channel mode\n"
-        "averaging N     - set the averaging count\n"
-        "polling N       - set the polling count\n"
-        "priority N      - set the priority mode\n"
-        "fifosize N      - set the FIFO size\n"
-        "conversion plugin,function,initialization - define a conversion\n"
-        "measure:format list - define the measurement format\n"
-        "    possible list items: raw, converted, range_i, range_v,\n"
-        "    time, status, number\n"
-        "measure?        - return a measurement\n"
+        "Channel commands (should be prefixed with 'channel<i>:'):\r\n"
+        "type?           - return type of board hosting the channel\r\n"
+        "address?        - return the board and channel address\r\n"
+        "voltage:range V - set the voltage range\r\n"
+        "current:range I - set the current range\r\n"
+        "mode N          - set the channel mode\r\n"
+        "averaging N     - set the averaging count\r\n"
+        "polling N       - set the polling count\r\n"
+        "priority N      - set the priority mode\r\n"
+        "fifosize N      - set the FIFO size\r\n"
+        "conversion plugin,function,initialization - define a conversion\r\n"
+        "measure:format list - define the measurement format\r\n"
+        "    possible list items: raw, converted, range_i, range_v,\r\n"
+        "    time, status, number\r\n"
+        "measure?        - return a measurement\r\n"
         );
     else if (strcmp(cmd->param[0], "regulation") == 0)
         queue_output(client, "%s",
-        "Regulation commands (should be prefixed with 'regulation<i>:'):\n"
-        "setpoint T   - define temperature setpoint\n"
-        "p val        - set P coefficient\n"
-        "i val        - set I coefficient\n"
-        "d val        - set D coefficient\n"
-        "max val      - set maximum heating power\n"
-        "resistance R - set resistance of heating resistor\n"
-        "channel<i>:weight W - set weight of channel i\n"
+        "Regulation commands (should be prefixed with 'regulation<i>:'):\r\n"
+        "setpoint T   - define temperature setpoint\r\n"
+        "p val        - set P coefficient\r\n"
+        "i val        - set I coefficient\r\n"
+        "d val        - set D coefficient\r\n"
+        "max val      - set maximum heating power\r\n"
+        "resistance R - set resistance of heating resistor\r\n"
+        "channel<i>:weight W - set weight of channel i\r\n"
         );
     else {
         push_error("Invalid help topic");
