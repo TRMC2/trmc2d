@@ -366,4 +366,139 @@ is replaced by "Error stack overflow".</p>
 </tr>
 </table>
 
+
+<h2>Raw commands</h2>
+
+<p>The following commands provide raw access to the functions of
+libtrmc2. The syntax of the commands is derived from the library API
+using a few simple translation rules:</p>
+
+<ol>
+
+<li>The commands have the same names as the corresponding library
+functions, with the omission of the suffix "TRMC".</li>
+
+<li>The first parameter to each command is an integer request identifier
+that will be returned in tempd's answer but is otherwise ignored. The
+following parameters are the input arguments to the library
+function.</li>
+
+<li>Each command returns a comma-separated list. The first item in the
+list is the request identifier. The second item is the value returned by
+the function call. Next come the output arguments of the function.</li>
+
+<li>Structures passed by pointer are assumed to be both input and output
+arguments, except for <code>AMEASURE</code> and <code>ERRORS</code>
+which are output only. Integers passed by pointer are assumed to be
+output only arguments.</li>
+
+<li>Structures and arrays are flattened. Structure members are in the
+order of their declaration in Trmc.h. Character arrays are handled as
+strings, i.e. transmitted up to and excluding the first NUL
+character.</li>
+
+</ol>
+
+<p>There are a few exceptions to these rules:</p>
+
+<ul>
+
+<li>The command mapped to the <code>GetSynchroneousErrorTRMC()</code>
+function is named <code>GetError</code>.</li>
+
+<li>The field <code>futureuse</code> of <code>INITSTRUCTURE</code> is
+ignored.</li>
+
+<li>The field <code>Etalon</code> of <code>CHANNELPARAMETER</code> is
+never transmitted but is preserved. Use the
+<code>channel<i>i</i>:conversion</code> command above to define a
+conversion routine.</li>
+
+<li>The three arrays in <code>BOARDPARAMETER</code> are assumed to be at
+the end of the structure. Only the cells of the array that are actually
+used are transmitted. Their number is given by the
+<code>Numberof...</code> fields of the same structure.</li>
+
+</ul>
+
+<p>Below is the full list of raw commands with the format of the
+corresponding responses:</p>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>response format</th>
+</tr>
+<tr>
+    <td class="l1">Start request_id, Com, Frequency,
+    CommunicationTime</td>
+    <td>request_id, returned_value, Com, Frequency,
+    CommunicationTime</td>
+</tr><tr>
+    <td class="l1">Stop request_id</td>
+    <td>request_id, returned_value</td>
+</tr><tr>
+    <td class="l1">GetError request_id</td>
+    <td>request_id, returned_value, CommError, CalcError, TimerError,
+    Date</td>
+</tr><tr>
+    <td class="l1">GetNumberOfChannel request_id</td>
+    <td>request_id, returned_value, channel_count</td>
+</tr><tr>
+    <td class="l1">GetChannel request_id, bywhat, name, ValueRangeI,
+    ValueRangeV, BoardAddress, SubAddress, BoardType, Index, Mode,
+    PreAveraging, ScrutationTime, PriorityFlag, FifoSize</td>
+    <td>request_id, returned_value, name, ValueRangeI, ValueRangeV,
+    BoardAddress, SubAddress, BoardType, Index, Mode, PreAveraging,
+    ScrutationTime, PriorityFlag, FifoSize</td>
+</tr><tr>
+    <td class="l1">SetChannel request_id, name, ValueRangeI,
+    ValueRangeV, BoardAddress, SubAddress, BoardType, Index, Mode,
+    PreAveraging, ScrutationTime, PriorityFlag, FifoSize</td>
+    <td>request_id, returned_value, name, ValueRangeI, ValueRangeV,
+    BoardAddress, SubAddress, BoardType, Index, Mode, PreAveraging,
+    ScrutationTime, PriorityFlag, FifoSize</td>
+</tr><tr>
+    <td class="l1">GetRegulation request_id, name, SetPoint, P, I, D,
+    HeatingMax, HeatingResistor, WeightofChannel[0], ...,
+    IndexofChannel[0], ..., Index, ThereIsABooster, ReturnTo0</td>
+    <td>request_id, returned_value, name, SetPoint, P, I, D, HeatingMax,
+    HeatingResistor, WeightofChannel[0], ..., IndexofChannel[0], ...,
+    Index, ThereIsABooster, ReturnTo0</td>
+</tr><tr>
+    <td class="l1">SetRegulation request_id, name, SetPoint, P, I, D,
+    HeatingMax, HeatingResistor, WeightofChannel[0], ...,
+    IndexofChannel[0], ..., Index, ThereIsABooster, ReturnTo0</td>
+    <td>request_id, returned_value, name, SetPoint, P, I, D, HeatingMax,
+    HeatingResistor, WeightofChannel[0], ..., IndexofChannel[0], ...,
+    Index, ThereIsABooster, ReturnTo0</td>
+</tr><tr>
+    <td class="l1">GetNumberOfBoard request_id</td>
+    <td>request_id, returned_value, board_count</td>
+</tr><tr>
+    <td class="l1">GetBoard request_id, bywhat, TypeofBoard,
+    AddressofBoard, Index, CalibrationStatus,
+    NumberofCalibrationMeasure, NumberofIRanges, NumberofVRanges,
+    CalibrationTable[0], ..., IRangesTable[0], ..., VRangesTable[0],
+    ...</td>
+    <td>request_id, returned_value, TypeofBoard, AddressofBoard, Index,
+    CalibrationStatus, NumberofCalibrationMeasure, NumberofIRanges,
+    NumberofVRanges, CalibrationTable[0], ..., IRangesTable[0], ...,
+    VRangesTable[0], ...</td>
+</tr><tr>
+    <td class="l1">SetBoard request_id, TypeofBoard, AddressofBoard,
+    Index, CalibrationStatus, NumberofCalibrationMeasure,
+    NumberofIRanges, NumberofVRanges, CalibrationTable[0], ...,
+    IRangesTable[0], ..., VRangesTable[0], ...</td>
+    <td>request_id, returned_value, TypeofBoard, AddressofBoard, Index,
+    CalibrationStatus, NumberofCalibrationMeasure, NumberofIRanges,
+    NumberofVRanges, CalibrationTable[0], ..., IRangesTable[0], ...,
+    VRangesTable[0], ...</td>
+</tr><tr>
+    <td class="l1">ReadValue request_id, index</td>
+    <td>request_id, returned_value, MeasureRaw, Measure, ValueRangeI,
+    ValueRangeV, Time, Status, Number, Nothing</td>
+</tr>
+</table>
+
 </body></html>

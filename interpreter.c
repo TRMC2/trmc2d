@@ -669,6 +669,240 @@ static int quit(unused(void *client),
 
 
 /***********************************************************************
+ * Raw access to libtrmc2.
+ */
+
+enum { Start, Stop, GetError, GetNumberOfChannel, GetChannel,
+    SetChannel, GetRegulation, SetRegulation, GetNumberOfBoard,
+    GetBoard, SetBoard, ReadValue };
+
+static int raw_command(void *client, int cmd_data, parsed_command *cmd)
+{
+    int request_id = 0;
+    if (cmd->n_param < 1) goto bad_arg_count;
+    request_id = atoi(cmd->param[0]);
+    switch (cmd_data) {
+        case Start: {
+            if (cmd->n_param != 4) goto bad_arg_count;
+            INITSTRUCTURE init; // the field `futureuse' is ignored
+            init.Com =               atoi(cmd->param[1]);
+            init.Frequency =         atoi(cmd->param[2]);
+            init.CommunicationTime = atoi(cmd->param[3]);
+            int ret = StartTRMC(&init);
+            queue_output(client, "%d,%d,%d,%d,%d\r\n", request_id, ret,
+                    init.Com,
+                    init.Frequency,
+                    init.CommunicationTime);
+            break;
+        }
+        case Stop: {
+            if (cmd->n_param != 1) goto bad_arg_count;
+            int ret = StopTRMC();
+            queue_output(client, "%d,%d\r\n", request_id, ret);
+            break;
+        }
+        case GetError: {
+            if (cmd->n_param != 1) goto bad_arg_count;
+            ERRORS errors;
+            int ret = GetSynchroneousErrorTRMC(&errors);
+            queue_output(client, "%d,%d,%d,%d,%d,%d\r\n", request_id, ret,
+                    errors.CommError,
+                    errors.CalcError,
+                    errors.TimerError,
+                    errors.Date);
+            break;
+        }
+        case GetNumberOfChannel: {
+            if (cmd->n_param != 1) goto bad_arg_count;
+            int channel_count;
+            int ret = GetNumberOfChannelTRMC(&channel_count);
+            queue_output(client, "%d,%d,%d\r\n", request_id, ret,
+                    channel_count);
+            break;
+        }
+        case GetChannel:
+        case SetChannel:
+        {
+            int is_getter = cmd_data == GetChannel;
+            if (cmd->n_param != 13 + is_getter) goto bad_arg_count;
+            CHANNELPARAMETER channel;
+            int bywhat;
+            if (is_getter)
+                bywhat = atoi(cmd->param[1]);
+            int N = 1 + is_getter;
+            strncpy(channel.name, cmd->param[N+0], _LENGTHOFNAME);
+            channel.ValueRangeI =    atof(cmd->param[N+1]);
+            channel.ValueRangeV =    atof(cmd->param[N+2]);
+            channel.BoardAddress =   atoi(cmd->param[N+3]);
+            channel.SubAddress =     atoi(cmd->param[N+4]);
+            channel.BoardType =      atoi(cmd->param[N+5]);
+            channel.Index =          atoi(cmd->param[N+6]);
+            channel.Mode =           atoi(cmd->param[N+7]);
+            channel.PreAveraging =   atoi(cmd->param[N+8]);
+            channel.ScrutationTime = atoi(cmd->param[N+9]);
+            channel.PriorityFlag =   atoi(cmd->param[N+10]);
+            channel.FifoSize =       atoi(cmd->param[N+11]);
+            int ret;
+            if (is_getter) {
+                ret = GetChannelTRMC(bywhat, &channel);
+            } else {
+                /* Preserve the field `Etalon'. */
+                CHANNELPARAMETER channel_old = channel;
+                GetChannelTRMC(_BYINDEX, &channel_old);
+                channel.Etalon = channel_old.Etalon;
+                ret = SetChannelTRMC(&channel);
+            }
+            queue_output(client,
+                    "%d,%d,%s,%e,%e,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n",
+                    request_id, ret,
+                    channel.name,
+                    channel.ValueRangeI,
+                    channel.ValueRangeV,
+                    channel.BoardAddress,
+                    channel.SubAddress,
+                    channel.BoardType,
+                    channel.Index,
+                    channel.Mode,
+                    channel.PreAveraging,
+                    channel.ScrutationTime,
+                    channel.PriorityFlag,
+                    channel.FifoSize);
+            break;
+        }
+        case GetRegulation:
+        case SetRegulation:
+        {
+            if (cmd->n_param != 11 + 2 * _NB_REGULATING_CHANNEL)
+                goto bad_arg_count;
+            REGULPARAMETER r;
+            strncpy(r.name, cmd->param[1], _LENGTHOFNAME);
+            r.SetPoint =        atof(cmd->param[2]);
+            r.P =               atof(cmd->param[3]);
+            r.I =               atof(cmd->param[4]);
+            r.D =               atof(cmd->param[5]);
+            r.HeatingMax =      atof(cmd->param[6]);
+            r.HeatingResistor = atof(cmd->param[7]);
+            int N = 8;
+            for (int i = 0; i < _NB_REGULATING_CHANNEL; i++)
+                r.WeightofChannel[i] = atof(cmd->param[N+i]);
+            N += _NB_REGULATING_CHANNEL;
+            for (int i = 0; i < _NB_REGULATING_CHANNEL; i++)
+                r.IndexofChannel[i] =  atoi(cmd->param[N+i]);
+            N += _NB_REGULATING_CHANNEL;
+            r.Index =           atoi(cmd->param[N+0]);
+            r.ThereIsABooster = atoi(cmd->param[N+1]);
+            r.ReturnTo0 =       atoi(cmd->param[N+2]);
+            int ret;
+            if (cmd_data == GetRegulation)
+                ret = GetRegulationTRMC(&r);
+            else
+                ret = SetRegulationTRMC(&r);
+            queue_output(client, "%d,%d,%s,%e,%e,%e,%e,%e,%e,",
+                    request_id, ret,
+                    r.name,
+                    r.SetPoint,
+                    r.P,
+                    r.I,
+                    r.D,
+                    r.HeatingMax,
+                    r.HeatingResistor);
+            for (int i = 0; i < _NB_REGULATING_CHANNEL; i++)
+                queue_output(client, "%e,", r.WeightofChannel[i]);
+            for (int i = 0; i < _NB_REGULATING_CHANNEL; i++)
+                queue_output(client, "%d,", r.IndexofChannel[i]);
+            queue_output(client, "%d,%d,%d\r\n",
+                    r.Index,
+                    r.ThereIsABooster,
+                    r.ReturnTo0);
+            break;
+        }
+        case GetNumberOfBoard: {
+            if (cmd->n_param != 1) goto bad_arg_count;
+            int board_count;
+            int ret = GetNumberOfBoardTRMC(&board_count);
+            queue_output(client, "%d,%d,%d\r\n", request_id, ret,
+                    board_count);
+            break;
+        }
+        case GetBoard:
+        case SetBoard:
+        {
+            int is_getter = cmd_data == GetBoard;
+            if (cmd->n_param < 8 + is_getter) goto bad_arg_count;
+            BOARDPARAMETER board;
+            int bywhat;
+            if (is_getter)
+                bywhat = atoi(cmd->param[1]);
+            int N = 1 + is_getter;
+            board.TypeofBoard =                atoi(cmd->param[N+0]);
+            board.AddressofBoard =             atoi(cmd->param[N+1]);
+            board.Index =                      atoi(cmd->param[N+2]);
+            board.CalibrationStatus =          atoi(cmd->param[N+3]);
+            board.NumberofCalibrationMeasure = atoi(cmd->param[N+4]);
+            board.NumberofIRanges =            atoi(cmd->param[N+5]);
+            board.NumberofVRanges =            atoi(cmd->param[N+6]);
+            N += 7;
+            if (cmd->n_param !=
+                    N + board.NumberofCalibrationMeasure +
+                    board.NumberofIRanges + board.NumberofVRanges)
+                goto bad_arg_count;
+            for (int i = 0; i < board.NumberofCalibrationMeasure; i++)
+                board.CalibrationTable[i] = atof(cmd->param[N+i]);
+            N += board.NumberofCalibrationMeasure;
+            for (int i = 0; i < board.NumberofIRanges; i++)
+                board.IRangesTable[i] = atof(cmd->param[N+i]);
+            N += board.NumberofIRanges;
+            for (int i = 0; i < board.NumberofVRanges; i++)
+                board.VRangesTable[i] = atof(cmd->param[N+i]);
+            int ret;
+            if (is_getter)
+                ret = GetBoardTRMC(bywhat, &board);
+            else
+                ret = SetBoardTRMC(&board);
+            queue_output(client, "%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                    request_id, ret,
+                    board.TypeofBoard,
+                    board.AddressofBoard,
+                    board.Index,
+                    board.CalibrationStatus,
+                    board.NumberofCalibrationMeasure,
+                    board.NumberofIRanges,
+                    board.NumberofVRanges);
+            for (int i = 0; i < board.NumberofCalibrationMeasure; i++)
+                queue_output(client, ",%e", board.CalibrationTable[i]);
+            for (int i = 0; i < board.NumberofIRanges; i++)
+                queue_output(client, ",%e", board.IRangesTable[i]);
+            for (int i = 0; i < board.NumberofVRanges; i++)
+                queue_output(client, ",%e", board.VRangesTable[i]);
+            queue_output(client, "\r\n");
+            break;
+        }
+        case ReadValue: {
+            if (cmd->n_param != 2) goto bad_arg_count;
+            int index =  atoi(cmd->param[1]);
+            AMEASURE measure;
+            int ret = ReadValueTRMC(index, &measure);
+            queue_output(client, "%d,%d,%e,%e,%e,%e,%d,%d,%d,%d\r\n",
+                    request_id, ret,
+                    measure.MeasureRaw,
+                    measure.Measure,
+                    measure.ValueRangeI,
+                    measure.ValueRangeV,
+                    measure.Time,
+                    measure.Status,
+                    measure.Number,
+                    measure.Nothing);
+            break;
+        }
+    }
+    return 0;
+bad_arg_count:
+    queue_output(client, "%d,Error: bad argument count\r\n", request_id);
+    return 1;
+}
+
+
+/***********************************************************************
  * Language description.
  */
 
@@ -735,5 +969,17 @@ const syntax_tree trmc2_syntax[] = {
         END_OF_LIST
     }},
     {"quit", quit, 0, NULL},
+    {"Start", raw_command, Start, NULL},
+    {"Stop", raw_command, Stop, NULL},
+    {"GetError", raw_command, GetError, NULL},
+    {"GetNumberOfChannel", raw_command, GetNumberOfChannel, NULL},
+    {"SetChannel", raw_command, SetChannel, NULL},
+    {"GetChannel", raw_command, GetChannel, NULL},
+    {"SetRegulation", raw_command, SetRegulation, NULL},
+    {"GetRegulation", raw_command, GetRegulation, NULL},
+    {"GetNumberOfBoard", raw_command, GetNumberOfBoard, NULL},
+    {"GetBoard", raw_command, GetBoard, NULL},
+    {"SetBoard", raw_command, SetBoard, NULL},
+    {"ReadValue", raw_command, ReadValue, NULL},
     END_OF_LIST
 };
