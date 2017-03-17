@@ -77,6 +77,37 @@ parameter mean the parameter is optional. <strong>Do not include the
 brackets</strong> in the commands you send to tempd.</p>
 
 
+<h2>General purpose commands</h2>
+
+<table>
+<tr>
+    <th>command</th>
+    <th>description</th>
+</tr>
+<tr>
+    <td class="l1">*idn?</td>
+    <td>Queries the server identification string</td>
+</tr><tr>
+    <td class="l1">help? [topic]</td>
+    <td>Display help on topic, which can be <code>board</code>,
+    <code>channel</code> or <code>regulation</code>. Default is to
+    display the general help, which includes all the commands that do
+    not fit into any of these categories.</td>
+</tr><tr>
+    <td class="l1">start freq [, port]</td>
+    <td>Starts the TRMC2 on the given serial port (1 or 2) at the given
+    frequency (0, 50 or 60), in hertz. Default serial port is port 1.
+    The port number is irrelevant when running on a Raspberry Pi.</td>
+</tr><tr>
+    <td class="l1">stop</td>
+    <td>Stops the periodic timer driving the TRMC2</td>
+</tr><tr>
+    <td class="l1">quit</td>
+    <td>Stops the server</td>
+</tr>
+</table>
+
+
 <h2>Board commands</h2>
 
 <table>
@@ -333,37 +364,6 @@ is replaced by "Error stack overflow".</p>
 </tr><tr>
     <td class="l2">:clear</td>
     <td>Clears the stack</td>
-</tr>
-</table>
-
-
-<h2>Miscellaneous commands</h2>
-
-<table>
-<tr>
-    <th>command</th>
-    <th>description</th>
-</tr>
-<tr>
-    <td class="l1">*idn?</td>
-    <td>Queries the server identification string</td>
-</tr><tr>
-    <td class="l1">help? [topic]</td>
-    <td>Display help on topic, which can be <code>board</code>,
-    <code>channel</code> or <code>regulation</code>. Default is to
-    display the general help, which includes all the commands that do
-    not fit into any of these categories.</td>
-</tr><tr>
-    <td class="l1">start freq [, port]</td>
-    <td>Starts the TRMC2 on the given serial port (1 or 2) at the given
-    frequency (0, 50 or 60), in hertz. Default serial port is port 1.
-    The port number is irrelevant when running on a Raspberry Pi.</td>
-</tr><tr>
-    <td class="l1">stop</td>
-    <td>Stops the periodic timer driving the TRMC2</td>
-</tr><tr>
-    <td class="l1">quit</td>
-    <td>Stops the server</td>
 </tr>
 </table>
 
