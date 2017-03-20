@@ -152,11 +152,11 @@ int main(int argc, char *argv[])
             if (cl->in > max_fd) continue;   /* this is the new client */
             if (FD_ISSET(cl->out, &wfds)) process_output(cl);
             if (FD_ISSET(cl->in, &rfds)) {
-                char *command = process_input(cl);
-
-                if(command)
-                    parse(command, trmc2_syntax, cl);
-                else {         /* client disconnected */
+                if (process_input(cl)) {
+                    char command[COMMAND_LENGTH];
+                    while (get_command(cl, command))
+                        parse(command, trmc2_syntax, cl);
+                } else {         /* client disconnected */
                     close(cl->in);
                     cl->active = 0;
                 }

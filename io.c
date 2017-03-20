@@ -115,6 +115,22 @@ int get_socket(int domain, int port, const char *name)
     return s;
 }
 
+/* Get a command from the input buffer. */
+char *get_command(client_t *cl, char *command)
+{
+    char *eol = strpbrk(cl->input_buffer, "\r\n");
+    if (!eol) return NULL;
+    char *next_cmd = eol + 1;
+    if (eol[0] == '\r' && eol[1] == '\n') next_cmd++;
+    *eol = '\0';
+    strcpy(command, cl->input_buffer);
+    size_t shift = next_cmd - cl->input_buffer;
+    memmove(cl->input_buffer, next_cmd, cl->input_pending - shift);
+    cl->input_pending -= shift;
+    cl->input_buffer[cl->input_pending] = '\0';
+    return command;
+}
+
 /* Queue message in the client output buffer. */
 void queue_output(client_t *cl, const char *fmt, ...)
 {
@@ -140,37 +156,37 @@ void queue_output(client_t *cl, const char *fmt, ...)
 }
 
 /*
- * Read a string from the client and return it in a static buffer.
- * Returns NULL on disconnect.
+ * Read bytes from the client.
+ * Returns the number of bytes read, 0 on disconnect.
  */
-char *process_input(client_t *cl)
+int process_input(client_t *cl)
 {
-    static char buffer[1024];
+    char *p = cl->input_buffer + cl->input_pending;
+    size_t sz = sizeof cl->input_buffer - cl->input_pending;
     int ret;
 #ifdef ECHO_COMMANDS
     char *eol;
 #endif
 
-    /* Read the command line. */
-    ret = read(cl->in, buffer, sizeof buffer - 1);
+    /* Read the client input. */
+    ret = read(cl->in, p, sz - 1);
     if (ret == -1) {
         syslog(LOG_ERR, "read: %m\n");
         exit(EXIT_FAILURE);
     }
-    buffer[ret] = '\0';
-
-    /* End of file? */
-    if (ret == 0) return NULL;
+    cl->input_pending += ret;
+    p[ret] = '\0';
 
 #ifdef ECHO_COMMANDS
     /* Testing: echo to stderr (ugly code here). */
-    eol = strrchr(buffer, '\n');
+    if (!ret) return 0;
+    eol = strrchr(cl->input_buffer, '\n');
     if (*eol) strcpy(eol, "\\n");
-    fprintf(stderr, "[%s]\n", buffer);
+    fprintf(stderr, "[%s]\n", cl->input_buffer);
     if (*eol) strcpy(eol, "\n");
 #endif
 
-    return buffer;
+    return ret;
 }
 
 /* Send pending output to the client. */

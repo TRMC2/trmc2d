@@ -9,11 +9,15 @@
  */
 #define MAX_CLIENTS 5
 
+#define COMMAND_LENGTH 1024  /* max length of an accepted command */
+
 /* Description of a client. */
 typedef struct {
     int active;                 /* 1 if this slot is used */
     int in;                     /* fd for reading */
     int out;                    /* fd for writing */
+    size_t input_pending;       /* number of read bytes not processed */
+    char input_buffer[COMMAND_LENGTH];  /* NUL-terminated */
     size_t output_pending;      /* number of bytes pending */
     char output_buffer[4096];
     int autoflush;              /* for tty clients only */
@@ -28,6 +32,13 @@ client_t *get_client_slot(void);
 /* Get a listening socket. */
 int get_socket(int domain, int port, const char *name);
 
+/*
+ * Get a command from the input buffer. The caller should allocate
+ * COMMAND_LENGTH bytes for `command'. Returns `command' or NULL if
+ * there is no complete buffered command.
+ */
+char *get_command(client_t *cl, char *command);
+
 /* Queue message in the client output buffer. */
 #ifdef __GNUC__
 __attribute__((format(printf, 2, 3)))
@@ -39,8 +50,11 @@ void queue_output(client_t *cl, const char *fmt, ...);
  * cl-in (resp. cl->out) is ready for input (resp. output).
  */
 
-/* Get input from the client. */
-char *process_input(client_t *cl);
+/*
+ * Read bytes from the client.
+ * Returns the number of bytes read, 0 on disconnect.
+ */
+int process_input(client_t *cl);
 
 /* Send pending output to the client. */
 void process_output(client_t *cl);
