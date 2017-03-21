@@ -12,7 +12,7 @@
 #include "parse.h"
 
 #define MAX_TOKENS 16
-#define MAX_PARAMS 16
+#define MAX_PARAMS 128
 
 /*
  * Remove the numeric suffix from the token and return it.
