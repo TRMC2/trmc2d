@@ -100,12 +100,6 @@ int main(int argc, char *argv[])
     /* Log messages via syslog. */
     openlog("tempd", 0, LOG_DAEMON);
 
-    /* Drop root privileges. */
-    if (setuid(getuid()) == -1) {
-        syslog(LOG_ERR, "setuid: %m\n");
-        return EXIT_FAILURE;
-    }
-
     /* Get a listening socket. */
     ls = get_socket(domain, port, socket_name);
     if (ls == -1) return EXIT_FAILURE;
