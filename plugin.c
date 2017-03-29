@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
 #include "plugin.h"
@@ -84,7 +85,9 @@ static const Etalon f_table[NB_CONVERSION_FCS] = {
     f26, f27, f28, f29, f30, f31, f32, f33
 };
 
-char* plugindir = "plugins";
+#ifndef DEFAULT_PLUGIN_DIR
+# define DEFAULT_PLUGIN_DIR "/usr/local/lib/tempd"
+#endif
 
 /* argv = { plugin, convert_name [, init_data] } */
 Etalon convert_init(int argc, char **argv)
@@ -105,6 +108,9 @@ Etalon convert_init(int argc, char **argv)
     c = &conversion[n];
 
     /* Build library and function names. */
+    char *plugindir = getenv("TEMPD_PLUGINS");
+    if (!plugindir)
+        plugindir = DEFAULT_PLUGIN_DIR;
     strcpy(dlname, plugindir);
     strcat(dlname, "/");
     strncat(dlname, argv[0], sizeof dlname - strlen(dlname) - 1);
