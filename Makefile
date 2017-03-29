@@ -6,6 +6,11 @@
 ########################################################################
 # User-accessible settings.
 
+# Install locations for the program and its plugins.
+INSTALLDIR = /usr/local
+BINDIR     = $(INSTALLDIR)/bin
+PLUGINDIR  = $(INSTALLDIR)/lib/tempd
+
 # Comment-out if libreadline is not available.
 # Doing so will disable line editing facilities in shell mode.
 WITH_READLINE = yes
@@ -22,6 +27,9 @@ WITH_MATHEVAL = yes
 CC      = gcc
 CFLAGS  = -std=gnu11 -O2 -ggdb -Wall -Wextra
 LDFLAGS =
+
+# This is only useful if you modified INSTALLDIR or PLUGINDIR:
+#CFLAGS += -DDEFAULT_PLUGIN_DIR=$(PLUGINDIR)
 
 # This is the place to add -I or -L options if you need them to find
 # libtrmc2. For example, if libtrmc2 is in /usr/local and the compiler
@@ -41,7 +49,7 @@ ifdef WITH_READLINE
 endif
 
 # Export to the `plugins' sub-make.
-export CC CFLAGS WITH_GSL WITH_MATHEVAL
+export CC CFLAGS WITH_GSL WITH_MATHEVAL PLUGINDIR
 
 
 ########################################################################
@@ -60,6 +68,15 @@ tags:   *.[ch]
 
 %.o:    %.c
 		$(CC) $(CFLAGS) -c $<
+
+install: tempd
+		mkdir -p $(BINDIR)
+		install -s tempd $(BINDIR)
+		$(MAKE) -C plugins install
+
+uninstall:
+		rm -f $(BINDIR)/tempd
+		$(MAKE) -C plugins uninstall
 
 clean:
 		rm -f tempd tags $(OBJS) core.*

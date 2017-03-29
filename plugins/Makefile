@@ -4,8 +4,9 @@
 
 # The following variables are exported by the top-level make:
 #WITH_GSL = yes
-CC       ?= gcc
-CFLAGS   ?= -O2 -ggdb -Wall -Wextra
+PLUGINDIR ?= /usr/local/lib/tempd
+CC        ?= gcc
+CFLAGS    ?= -O2 -ggdb -Wall -Wextra
 
 # Global options.
 CFLAGS  += -fPIC -shared -nostartfiles
@@ -36,6 +37,14 @@ endif
 
 %.so:   %.c
 		$(COMPILE)
+
+install: $(PLUGINS)
+		mkdir -p $(PLUGINDIR)
+		install $(PLUGINS) $(PLUGINDIR)
+
+uninstall:
+		cd $(PLUGINDIR) && rm $(PLUGINS)
+		rmdir --ignore-fail-on-non-empty $(PLUGINDIR)
 
 clean:
 		rm -f $(PLUGINS)
