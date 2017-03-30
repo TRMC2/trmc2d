@@ -73,8 +73,15 @@ install: tempd
 		mkdir -p $(BINDIR)
 		install -s tempd $(BINDIR)
 		$(MAKE) -C plugins install
+		install -m 644 tempd.service /etc/systemd/system
+		systemctl enable tempd
+		@echo "\n*** tempd successfully installed. ***"
+		@echo "To start tempd now, type: sudo systemctl start tempd"
 
 uninstall:
+		systemctl stop tempd || true
+		systemctl disable tempd || true
+		rm -f /etc/systemd/system/tempd.service
 		rm -f $(BINDIR)/tempd
 		$(MAKE) -C plugins uninstall
 

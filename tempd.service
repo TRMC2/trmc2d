@@ -1,0 +1,11 @@
+[Unit]
+Description=tempd temperature daemon for controlling the TRMC2
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/tempd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
