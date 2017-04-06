@@ -72,6 +72,14 @@ int get_socket(int domain, int port, const char *name)
     s = socket(domain, SOCK_STREAM, 0);
     if (s == -1) { syslog(LOG_ERR, "socket: %m\n"); return -1; }
 
+    /* Avoid the TIME_WAIT delay when restarting the daemon. */
+    const int one = 1;
+    err = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);
+    if (err == -1) {
+        syslog(LOG_ERR, "setsockopt(SO_REUSEADDR): %m\n"); return -1;
+        return -1;
+    }
+
     /* bind() it. */
     switch (domain) {
         case AF_UNIX:
