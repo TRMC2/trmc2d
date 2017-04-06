@@ -32,10 +32,11 @@ static const char cmdline_help[] =
 "    -c       use a color prompt in shell mode\n"
 "    -p port  bind to the specified TCP port\n"
 "    -u name  bind to a Unix domain socket with the given name\n"
+"    -n count accept that many simultaneous clients (default: 1)\n"
 "    -d       go to the background\n"
 "Default is to bind to TCP port 5025 (aka scpi-raw).\n";
 
-static const char optstring[] = "hscp:u:d";
+static const char optstring[] = "hscp:u:n:d";
 
 #define FD_SET_M(fd, set) do { FD_SET(fd, set); \
         max_fd = fd>max_fd ? fd : max_fd; } while (0)
@@ -46,6 +47,8 @@ int main(int argc, char *argv[])
     int port = 5025;
     int shell_mode = 0;
     const char *socket_name = NULL;
+    int max_client_count = 1;
+    int client_count = 0;
     int i;
     client_t *cl;
     int ls;                         /* listening socket */
@@ -82,6 +85,20 @@ int main(int argc, char *argv[])
             domain = AF_UNIX;
             peer_lg = sizeof(struct sockaddr_un);
             socket_name = optarg;
+            break;
+        case 'n':
+            max_client_count = atoi(optarg);
+            if (max_client_count > MAX_CLIENTS) {
+                fprintf(stderr,
+                        "Cannot accept more than %d simultaneous clients\n",
+                        MAX_CLIENTS);
+                max_client_count = MAX_CLIENTS;
+            }
+            if (max_client_count < 1) {
+                fprintf(stderr,
+                        "Cannot accept less than one client\n");
+                max_client_count = 1;
+            }
             break;
         case 'd':
             if (fork()) _exit(EXIT_SUCCESS);
@@ -136,7 +153,12 @@ int main(int argc, char *argv[])
                 syslog(LOG_ERR, "accept: %m\n");
                 return EXIT_FAILURE;
             }
-            cl->active++;
+            if (client_count >= max_client_count) {
+                close(cl->in);
+            } else {
+                cl->active++;
+                client_count++;
+            }
         }
 
         /* Do I/O. */
@@ -153,6 +175,7 @@ int main(int argc, char *argv[])
                 } else {         /* client disconnected */
                     close(cl->in);
                     cl->active = 0;
+                    client_count--;
                 }
             }
         }
