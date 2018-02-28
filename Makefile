@@ -13,7 +13,10 @@ PLUGINDIR  = $(INSTALLDIR)/lib/tempd
 
 # Comment-out if libreadline is not available.
 # Doing so will disable line editing facilities in shell mode.
-WITH_READLINE = yes
+# Note: there is currently an issue with libreadline causing a display
+# bug when the timer is active (#1 in the issue tracker). For the time
+# being, we keep it disabled by default.
+#WITH_READLINE = yes
 
 # Comment-out if libgsl is not available.
 # Doing so will disable all methods but `linear' from interpolate.so.
