@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "constants.h"
 #include "parse.h"
 #include "interpreter.h"
@@ -33,7 +34,11 @@
     {
         fputs(prompt, stdout);
         char * line = malloc(LINE_LENGTH);
-        char * ret = fgets(line, LINE_LENGTH, stdin);
+        char * ret;
+
+        /* Retry reading as long as we get interrupted. */
+        do ret = fgets(line, LINE_LENGTH, stdin);
+        while (!ret && errno == EINTR);
 
         /* Return NULL if EOF on empty line. */
         if (!ret) {
