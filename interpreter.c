@@ -251,7 +251,7 @@ static channel_t *get_channel_extras(int index)
  * The format string is a NULL-terminated array of chars having the
  * values below.
  */
-enum { RAW = 1, MEAS, RANGEI, RANGEV, TIME, STATUS, NUMBER };
+enum { RAW = 1, MEAS, RANGEI, RANGEV, TIME, STATUS, NUMBER, COUNT };
 
 /*
  * Default formats. The first one is used if a conversion function has
@@ -273,6 +273,7 @@ static char parse_format_item(const char *fmt)
     if (strcasecmp(fmt, "time")      == 0) return TIME;
     if (strcasecmp(fmt, "status")    == 0) return STATUS;
     if (strcasecmp(fmt, "number")    == 0) return NUMBER;
+    if (strcasecmp(fmt, "count")     == 0) return COUNT;
     return 0;  /* invalid */
 }
 
@@ -289,6 +290,7 @@ static void queue_format(client_t *cl, const char *format)
             case TIME:   queue_output(cl, "time");      break;
             case STATUS: queue_output(cl, "status");    break;
             case NUMBER: queue_output(cl, "number");    break;
+            case COUNT:  queue_output(cl, "count");     break;
         }
         if (i < n - 1) queue_output(cl, ",");
     }
@@ -296,7 +298,8 @@ static void queue_format(client_t *cl, const char *format)
 }
 
 /* Send a measurement as per the requested format. */
-static void queue_measurement(client_t *cl, const char *format, AMEASURE *m)
+static void queue_measurement(client_t *cl,
+        const char *format, AMEASURE *m, int count)
 {
     size_t n = strlen(format);
     for (size_t i = 0; i < n; i++) {
@@ -308,6 +311,7 @@ static void queue_measurement(client_t *cl, const char *format, AMEASURE *m)
             case TIME:   queue_output(cl, "%d", m->Time);        break;
             case STATUS: queue_output(cl, "%d", m->Status);      break;
             case NUMBER: queue_output(cl, "%d", m->Number);      break;
+            case COUNT:  queue_output(cl, "%d", count);          break;
         }
         if (i < n - 1) queue_output(cl, ",");
     }
@@ -425,7 +429,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 if (channel.Etalon) format = format_raw_meas;
                 else format = format_raw;
             }
-            queue_measurement(client, format, &meas);
+            queue_measurement(client, format, &meas, ret);
             break;
     } else {  /* !query */
         switch (cmd_data) {
@@ -572,7 +576,7 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "conversion plugin,function,initialization - define a conversion\r\n"
         "measure:format list - define the measurement format\r\n"
         "    possible list items: raw, converted, range_i, range_v,\r\n"
-        "    time, status, number\r\n"
+        "    time, status, number, count\r\n"
         "measure?        - return a measurement\r\n"
         );
     else if (strcmp(cmd->param[0], "regulation") == 0)
