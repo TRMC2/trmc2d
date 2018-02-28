@@ -48,6 +48,9 @@ ifdef WITH_READLINE
     tempd:   LDLIBS += -lreadline -ltermcap
 endif
 
+# Get version information.
+interpreter.o: CFLAGS += -DVERSION='"$(shell ./get-version.sh)"'
+
 # Export to the `plugins' sub-make.
 export CC CFLAGS WITH_GSL WITH_MATHEVAL PLUGINDIR
 
