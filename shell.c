@@ -12,14 +12,18 @@
 #include "io.h"
 #include "shell.h"
 
-#define COLOR_TEMPD   "\1\x1b[33m\2"
-#define COLOR_ARROW   "\1\x1b[1;34m\2"
-#define COLOR_DEFAULT "\1\x1b[0m\2"
-
 #ifdef USE_READLINE
 
     #include <readline/readline.h>
     #include <readline/history.h>
+
+    /*
+     * libreadline requires sequences of non printing characters to be
+     * enclosed between \1 and \2.
+     */
+    #define COLOR_TEMPD   "\1\x1b[33m\2"
+    #define COLOR_ARROW   "\1\x1b[1;34m\2"
+    #define COLOR_DEFAULT "\1\x1b[0m\2"
 
 #else  /* if !defined(USE_READLINE) */
 
@@ -29,6 +33,10 @@
 
     #include <string.h>
     #define LINE_LENGTH 1024
+
+    #define COLOR_TEMPD   "\x1b[33m"
+    #define COLOR_ARROW   "\x1b[1;34m"
+    #define COLOR_DEFAULT "\x1b[0m"
 
     char *readline(const char *prompt)
     {
