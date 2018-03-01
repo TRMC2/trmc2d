@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/ip.h>
+#include "constants.h"
 #include "parse.h"
 #include "interpreter.h"
 #include "io.h"
@@ -170,8 +171,11 @@ int main(int argc, char *argv[])
             if (FD_ISSET(cl->in, &rfds)) {
                 if (process_input(cl)) {
                     char command[COMMAND_LENGTH];
-                    while (get_command(cl, command))
-                        parse(command, trmc2_syntax, cl);
+                    while (get_command(cl, command)) {
+                        ret = parse(command, trmc2_syntax, cl);
+                        if (ret < 0)
+                            push_error(const_name(ret, parse_errors));
+                    }
                 } else {         /* client disconnected */
                     close(cl->in);
                     cl->active = 0;
