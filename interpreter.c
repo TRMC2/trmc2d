@@ -28,6 +28,9 @@
 # define unused(x) x
 #endif
 
+/* Convenience macro: the client parameter comes as (void *). */
+#define VERBOSE(client) (((client_t *) client)->verbose)
+
 
 /***********************************************************************
  * Error handling.
@@ -95,6 +98,8 @@ static int clear_errors(void *client,
         report_error(client, "Malformed error command");
         return 1;
     }
+    if (VERBOSE(client))
+        queue_output(client, "Error stack cleared\r\n");
     error_sp = 0;
     return 0;
 }
@@ -166,7 +171,10 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
         report_error(client, const_name(ret, error_codes));
         return 1;
     }
-    if (cmd->query) switch (cmd_data) {
+    if (!cmd->query) {
+        /* XXX: Handle the case cmd_data == b_calibration. */
+    }
+    if (cmd->query || VERBOSE(client)) switch (cmd_data) {
         case b_type:
             queue_output(client, "%d (%s)\r\n", board.TypeofBoard,
                     const_name(board.TypeofBoard, BoardType_names));
@@ -202,8 +210,6 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
                     queue_output(client, ",");
             }
             queue_output(client, "\r\n");
-    }
-    else {      /* cmd_data == b_calibration */
     }
 
     return 0;
@@ -333,6 +339,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
     AMEASURE meas;
     channel_t *channel_extras;
 
+    /* Sanity check. */
     assert(client != NULL);
     index = cmd->suffix[0];
     if (index == -1 || cmd->suffix[1] != -1
@@ -362,83 +369,17 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             return 1;
         }
     }
+
+    /* Get the current parameters. */
     channel.Index = index;
     ret =  GetChannelTRMC(_BYINDEX, &channel);
     if (ret) {
         report_error(client, const_name(ret, error_codes));
         return 1;
     }
-    if (cmd->query) switch (cmd_data) {
-        case c_vrange:
-            queue_output(client, "%g\r\n", channel.ValueRangeV);
-            break;
-        case c_irange:
-            queue_output(client, "%g\r\n", channel.ValueRangeI);
-            break;
-        case c_address:
-            queue_output(client, "%d, %d\r\n",
-                    channel.BoardAddress, channel.SubAddress);
-            break;
-        case c_type:
-            queue_output(client, "%d (%s)\r\n", channel.BoardType,
-                    const_name(channel.BoardType, BoardType_names));
-            break;
-        case c_mode:
-            queue_output(client, "%d (%s)\r\n", channel.Mode,
-                    const_name(channel.Mode, Mode_names));
-            break;
-        case c_avg:
-            queue_output(client, "%d\r\n", channel.PreAveraging);
-            break;
-        case c_polling:
-            queue_output(client, "%d\r\n", channel.ScrutationTime);
-            break;
-        case c_priority:
-            queue_output(client, "%d (%s)\r\n", channel.PriorityFlag,
-                    const_name(channel.PriorityFlag, Priority_names));
-            break;
-        case c_fifosz:
-            queue_output(client, "%d\r\n", channel.FifoSize);
-            break;
-        case c_conversion:
-            channel_extras = get_channel_extras(index);
-            if (!channel_extras->conversion) {
-                report_error(client, "Channel has no conversion.");
-                return 1;
-            }
-            queue_output(client, "%s\r\n", channel_extras->conversion);
-            break;
-        case format:
-            channel_extras = get_channel_extras(index);
-            if (channel_extras->format)
-                queue_format(client, channel_extras->format);
-            else
-                queue_output(client, "No format defined.\r\n");
-            break;
-        case measure:
-            ret = ReadValueTRMC(index, &meas);
-            /*
-             * A positive return value is the number of data points in
-             * the FIFO before the read. A negative value is an error
-             * code.
-             */
-            if (ret < 0) {
-                report_error(client, const_name(ret, error_codes));
-                return 1;
-            }
-            if (ret == 0) {
-                report_error(client, "Measurement queue empty.");
-                return 1;
-            }
-            channel_extras = get_channel_extras(index);
-            const char *format = channel_extras->format;
-            if (!format) {
-                if (channel.Etalon) format = format_raw_meas;
-                else format = format_raw;
-            }
-            queue_measurement(client, format, &meas, ret);
-            break;
-    } else {  /* !query */
+
+    /* Change parameters. */
+    if (!cmd->query) {
         switch (cmd_data) {
             case c_vrange:
                 channel.ValueRangeV = atof(cmd->param[0]);
@@ -508,6 +449,87 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             report_error(client, const_name(ret, error_codes));
             return 1;
         }
+        if (VERBOSE(client)) {
+            /* Read back the parameters in order to report them. */
+            ret =  GetChannelTRMC(_BYINDEX, &channel);
+            if (ret) {
+                report_error(client, const_name(ret, error_codes));
+                return 1;
+            }
+        }
+    }
+
+    /* Report parameters. */
+    if (cmd->query || VERBOSE(client)) switch (cmd_data) {
+        case c_vrange:
+            queue_output(client, "%g\r\n", channel.ValueRangeV);
+            break;
+        case c_irange:
+            queue_output(client, "%g\r\n", channel.ValueRangeI);
+            break;
+        case c_address:
+            queue_output(client, "%d, %d\r\n",
+                    channel.BoardAddress, channel.SubAddress);
+            break;
+        case c_type:
+            queue_output(client, "%d (%s)\r\n", channel.BoardType,
+                    const_name(channel.BoardType, BoardType_names));
+            break;
+        case c_mode:
+            queue_output(client, "%d (%s)\r\n", channel.Mode,
+                    const_name(channel.Mode, Mode_names));
+            break;
+        case c_avg:
+            queue_output(client, "%d\r\n", channel.PreAveraging);
+            break;
+        case c_polling:
+            queue_output(client, "%d\r\n", channel.ScrutationTime);
+            break;
+        case c_priority:
+            queue_output(client, "%d (%s)\r\n", channel.PriorityFlag,
+                    const_name(channel.PriorityFlag, Priority_names));
+            break;
+        case c_fifosz:
+            queue_output(client, "%d\r\n", channel.FifoSize);
+            break;
+        case c_conversion:
+            channel_extras = get_channel_extras(index);
+            if (!channel_extras->conversion) {
+                report_error(client, "Channel has no conversion.");
+                return 1;
+            }
+            queue_output(client, "%s\r\n", channel_extras->conversion);
+            break;
+        case format:
+            channel_extras = get_channel_extras(index);
+            if (channel_extras->format)
+                queue_format(client, channel_extras->format);
+            else
+                queue_output(client, "No format defined.\r\n");
+            break;
+        case measure:
+            ret = ReadValueTRMC(index, &meas);
+            /*
+             * A positive return value is the number of data points in
+             * the FIFO before the read. A negative value is an error
+             * code.
+             */
+            if (ret < 0) {
+                report_error(client, const_name(ret, error_codes));
+                return 1;
+            }
+            if (ret == 0) {
+                report_error(client, "Measurement queue empty.");
+                return 1;
+            }
+            channel_extras = get_channel_extras(index);
+            const char *format = channel_extras->format;
+            if (!format) {
+                if (channel.Etalon) format = format_raw_meas;
+                else format = format_raw;
+            }
+            queue_measurement(client, format, &meas, ret);
+            break;
     }
 
     return 0;
@@ -615,9 +637,9 @@ static int verbose(void *client, unused(int cmd_data), parsed_command *cmd)
         return 1;
     }
     if (!cmd->query)
-        ((client_t *) client)->verbose = atoi(cmd->param[0]) != 0;
-    else
-        queue_output(client, "%d\r\n", ((client_t *) client)->verbose);
+        VERBOSE(client) = atoi(cmd->param[0]) != 0;
+    if (cmd->query || VERBOSE(client))
+        queue_output(client, "%d\r\n", VERBOSE(client));
     return 0;
 }
 
@@ -663,6 +685,8 @@ static int start(void *client, unused(int cmd_data),
         report_error(client, const_name(ret, error_codes));
         return 1;
     }
+    if (VERBOSE(client))
+        queue_output(client, "Periodic timer started at %d Hz\r\n", freq);
     return 0;
 }
 
@@ -680,6 +704,8 @@ static int stop(void *client, unused(int cmd_data), parsed_command *cmd)
         report_error(client, const_name(ret, error_codes));
         return 1;
     }
+    if (VERBOSE(client))
+        queue_output(client, "Periodic timer stopped\r\n");
     return 0;
 }
 
@@ -690,6 +716,9 @@ static int quit(void *client, unused(int cmd_data), parsed_command *cmd)
         return 1;
     }
     should_quit = 1;
+    if (VERBOSE(client)) {
+        /* No point in queuing a message that will never be sent. */
+    }
     return 0;
 }
 
