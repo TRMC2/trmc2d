@@ -33,6 +33,7 @@ client_t *get_client_slot(void)
     if (i == MAX_CLIENTS) return NULL;
     client[i].output_pending = 0;
     client[i].autoflush = 0;
+    client[i].verbose = 0;
     return &client[i];
 }
 

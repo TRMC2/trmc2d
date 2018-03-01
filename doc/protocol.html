@@ -93,6 +93,11 @@ brackets</strong> in the commands you send to tempd.</p>
     display the general help, which includes all the commands that do
     not fit into any of these categories.</td>
 </tr><tr>
+    <td class="l1">verbose value</td>
+    <td>Set (value = 1) or clear (value = 0) verbose mode. This affects
+    the display of error messages. Verbose mode is a per-client setting
+    and is off by default.</td>
+</tr><tr>
     <td class="l1">start freq [, port]</td>
     <td>Starts the TRMC2 on the given serial port (1 or 2) at the given
     frequency (0, 50 or 60), in hertz. Default serial port is port 1.
@@ -341,7 +346,10 @@ maximum of four channels can have non-zero weight.</p>
 
 <h2>Error commands</h2>
 
-<p>Error messages are not output immediately, instead they are
+<p>The display of error messages is affected by the setting of the
+verbose mode (see the <code>verbose</code> command above). If verbose
+mode is on, errors are output immediately, preceded by the prefix
+"ERROR:&nbsp;". If verbose mode is off, error messages are instead
 accumulated in an "error stack". The error on top of the stack can be
 queried with the <code>error?</code> command, which has the side effect
 of removing that error from the stack. If the stack is empty, this

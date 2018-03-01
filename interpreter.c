@@ -15,8 +15,8 @@
 #include <Trmc.h>
 #include "parse.h"
 #include "constants.h"
-#include "interpreter.h"
 #include "io.h"
+#include "interpreter.h"
 #include "plugin.h"
 
 /* Instrument identification. */
@@ -39,16 +39,23 @@ static const char *error_stack[MAX_ERRORS];
 static int error_sp = 0;
 
 /*
- * Push a static string on the error stack. Don't put "\r\n" at the end
- * of the string.
+ * Report an error, either immediately or through the error stack, as
+ * per the client's choice. The error message should be a static string,
+ * without the CRLF termination.
  */
-void push_error(const char *err)
+void report_error(client_t *client, const char *err)
 {
-    assert(error_sp >= 0 && error_sp <= MAX_ERRORS);
-    if (error_sp == MAX_ERRORS)
-        error_stack[error_sp-1] = "Error stack overflow";
-    else
-        error_stack[error_sp++] = err;
+    if (client->verbose) {
+        /* In verbose mode, the error is reported immediately. */
+        queue_output(client, "ERROR: %s\r\n", err);
+    } else {
+        /* Otherwise it is sent to the error stack. */
+        assert(error_sp >= 0 && error_sp <= MAX_ERRORS);
+        if (error_sp == MAX_ERRORS)
+            error_stack[error_sp-1] = "Error stack overflow";
+        else
+            error_stack[error_sp++] = err;
+    }
 }
 
 static int get_error(void *client,
@@ -57,7 +64,7 @@ static int get_error(void *client,
     assert(client != NULL);
     assert(error_sp >= 0 && error_sp <= MAX_ERRORS);
     if (!cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 0) {
-        push_error("Malformed error command");
+        report_error(client, "Malformed error command");
         return 1;
     }
     queue_output(client, "%s\r\n",
@@ -72,20 +79,20 @@ static int error_count(void *client,
     assert(cmd->n_tok == 2);
     if (!cmd->query || cmd->suffix[0] != -1
             || cmd->suffix[1] != -1 || cmd->n_param != 0) {
-        push_error("Malformed error command");
+        report_error(client, "Malformed error command");
         return 1;
     }
     queue_output(client, "%d\r\n", error_sp);
     return 0;
 }
 
-static int clear_errors(unused(void *client),
+static int clear_errors(void *client,
         unused(int cmd_data), parsed_command *cmd)
 {
     assert(cmd->n_tok == 2);
     if (cmd->query || cmd->suffix[0] != -1
             || cmd->suffix[1] != -1 || cmd->n_param != 0) {
-        push_error("Malformed error command");
+        report_error(client, "Malformed error command");
         return 1;
     }
     error_sp = 0;
@@ -113,7 +120,7 @@ static int get_number(void *client, int cmd_data, parsed_command *cmd)
     assert(cmd_data == nb_boards || cmd_data == nb_channels);
     if (cmd->query != 1 || cmd->suffix[0] != -1
             || cmd->suffix[1] != -1 || cmd->n_param != 0) {
-        push_error("Malformed count command");
+        report_error(client, "Malformed count command");
         return 1;
     }
     if (cmd_data == nb_boards)
@@ -121,7 +128,7 @@ static int get_number(void *client, int cmd_data, parsed_command *cmd)
     else  /* cmd_data == nb_channels */
         ret = GetNumberOfChannelTRMC(&n);
     if (ret) {
-        push_error(const_name(ret, error_codes));
+        report_error(client, const_name(ret, error_codes));
         return 1;
     }
     queue_output(client, "%d\r\n", n);
@@ -146,17 +153,17 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
     if (index == -1 || cmd->suffix[1] != -1
             || (cmd->query && cmd->n_param != 0)
             || (!cmd->query && cmd->n_param != 1)) {
-        push_error("Malformed board command");
+        report_error(client, "Malformed board command");
         return 1;
     }
     if (!cmd->query && cmd_data != b_calibration) {
-        push_error("Read-only parameter");
+        report_error(client, "Read-only parameter");
         return 1;
     }
     board.Index = index;
     ret =  GetBoardTRMC(_BYINDEX, &board);
     if (ret) {
-        push_error(const_name(ret, error_codes));
+        report_error(client, const_name(ret, error_codes));
         return 1;
     }
     if (cmd->query) switch (cmd_data) {
@@ -330,7 +337,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
     index = cmd->suffix[0];
     if (index == -1 || cmd->suffix[1] != -1
             || (cmd->query && cmd->n_param != 0)) {
-        push_error("Malformed channel command");
+        report_error(client, "Malformed channel command");
         return 1;
     }
     if (!cmd->query) {
@@ -339,7 +346,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             case c_address:
             case c_type:
             case measure:
-                push_error("Read-only parameter");
+                report_error(client, "Read-only parameter");
                 return 1;
             case c_conversion:
                 n_param_ok = cmd->n_param == 2 || cmd->n_param == 3;
@@ -351,14 +358,14 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 n_param_ok = cmd->n_param == 1;
         }
         if (!n_param_ok) {
-            push_error("Bad parameter count");
+            report_error(client, "Bad parameter count");
             return 1;
         }
     }
     channel.Index = index;
     ret =  GetChannelTRMC(_BYINDEX, &channel);
     if (ret) {
-        push_error(const_name(ret, error_codes));
+        report_error(client, const_name(ret, error_codes));
         return 1;
     }
     if (cmd->query) switch (cmd_data) {
@@ -396,7 +403,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
         case c_conversion:
             channel_extras = get_channel_extras(index);
             if (!channel_extras->conversion) {
-                push_error("Channel has no conversion.");
+                report_error(client, "Channel has no conversion.");
                 return 1;
             }
             queue_output(client, "%s\r\n", channel_extras->conversion);
@@ -416,11 +423,11 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
              * code.
              */
             if (ret < 0) {
-                push_error(const_name(ret, error_codes));
+                report_error(client, const_name(ret, error_codes));
                 return 1;
             }
             if (ret == 0) {
-                push_error("Measurement queue empty.");
+                report_error(client, "Measurement queue empty.");
                 return 1;
             }
             channel_extras = get_channel_extras(index);
@@ -475,7 +482,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 if (channel.Etalon) convert_cleanup(channel.Etalon);
                 channel.Etalon = convert_init(cmd->n_param, cmd->param);
                 if (!channel.Etalon) {
-                    push_error("Conversion initialization failed.");
+                    report_error(client, "Conversion initialization failed.");
                     return 1;
                 }
                 break;
@@ -487,7 +494,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 for (int i = 0; i < cmd->n_param; i++) {
                     format[i] = parse_format_item(cmd->param[i]);
                     if (!format[i]) {
-                        push_error("Invalid format.");
+                        report_error(client, "Invalid format.");
                         free(format);
                         channel_extras->format = NULL;
                         return 1;
@@ -498,7 +505,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
         }
         ret = SetChannelTRMC(&channel);
         if (ret) {
-            push_error(const_name(ret, error_codes));
+            report_error(client, const_name(ret, error_codes));
             return 1;
         }
     }
@@ -517,7 +524,7 @@ static int idn(void *client, unused(int cmd_data), parsed_command *cmd)
 {
     assert(client != NULL);
     if (!cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 0) {
-        push_error("Malformed *idn command");
+        report_error(client, "Malformed *idn command");
         return 1;
     }
     queue_output(client, "%s\r\n", IDN);
@@ -529,7 +536,7 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
     assert(client != NULL);
     /* Do not insist on having '?' on the help command. */
     if (cmd->suffix[0] != -1 || cmd->n_param > 1) {
-        push_error("Malformed help command");
+        report_error(client, "Malformed help command");
         return 1;
     }
     if (cmd->n_param == 0)
@@ -537,6 +544,7 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "*idn?          - return the server identification string\r\n"
         "help? [topic]  - display help on topic (or this general help)\r\n"
         "    available topics: board, channel, regulation\r\n"
+        "verbose N      - set (N = 1) or clear (N = 0) verbose mode\r\n"
         "start freq [,port] - start the TRMC2\r\n"
         "stop           - stop the periodic timer\r\n"
         "board:count?   - return the number of boards\r\n"
@@ -591,14 +599,30 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "channel<i>:weight W - set weight of channel i\r\n"
         );
     else {
-        push_error("Invalid help topic");
+        report_error(client, "Invalid help topic");
         return 1;
     }
     return 0;
 }
 
+static int verbose(void *client, unused(int cmd_data), parsed_command *cmd)
+{
+    assert(client != NULL);
+    assert(cmd->n_tok == 1);
+    if (cmd->suffix[0] != -1 || (cmd->query && cmd->n_param != 0)
+            || (!cmd->query && cmd->n_param != 1)) {
+        report_error(client, "Malformed verbose command");
+        return 1;
+    }
+    if (!cmd->query)
+        ((client_t *) client)->verbose = atoi(cmd->param[0]) != 0;
+    else
+        queue_output(client, "%d\r\n", ((client_t *) client)->verbose);
+    return 0;
+}
+
 /* syntax: "start frequency [, serial_port_number]" */
-static int start(unused(void *client), unused(int cmd_data),
+static int start(void *client, unused(int cmd_data),
         parsed_command *cmd)
 {
     INITSTRUCTURE init;
@@ -607,7 +631,7 @@ static int start(unused(void *client), unused(int cmd_data),
     assert(cmd->n_tok == 1);
     if (cmd->query || cmd->suffix[0] != -1
             || cmd->n_param < 1 || cmd->n_param > 2) {
-        push_error("Malformed start command");
+        report_error(client, "Malformed start command");
         return 1;
     }
 
@@ -620,7 +644,7 @@ static int start(unused(void *client), unused(int cmd_data),
     else if (freq == 60)
         init.Frequency = _60HZ;
     else {
-        push_error("Invalid frequency");
+        report_error(client, "Invalid frequency");
         return 1;
     }
     int port = cmd->n_param>1 ? atoi(cmd->param[1]) : 1;
@@ -629,42 +653,40 @@ static int start(unused(void *client), unused(int cmd_data),
     else if (port == 2)
         init.Com = _COM2;
     else {
-        push_error("Invalid serial port number");
+        report_error(client, "Invalid serial port number");
         return 1;
     }
 
     /* Proceed to start the TRMC2. */
     int ret = StartTRMC(&init);
     if (ret) {
-        push_error(const_name(ret, error_codes));
+        report_error(client, const_name(ret, error_codes));
         return 1;
     }
     return 0;
 }
 
-static int stop(unused(void *client), unused(int cmd_data),
-        parsed_command *cmd)
+static int stop(void *client, unused(int cmd_data), parsed_command *cmd)
 {
     /* Sanity check. */
     assert(cmd->n_tok == 1);
     if (cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 0) {
-        push_error("Malformed stop command");
+        report_error(client, "Malformed stop command");
         return 1;
     }
 
     int ret = StopTRMC();
     if (ret) {
-        push_error(const_name(ret, error_codes));
+        report_error(client, const_name(ret, error_codes));
         return 1;
     }
     return 0;
 }
 
-static int quit(unused(void *client),
-        unused(int cmd_data), parsed_command *cmd)
+static int quit(void *client, unused(int cmd_data), parsed_command *cmd)
 {
     if (cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 0) {
-        push_error("Malformed quit command");
+        report_error(client, "Malformed quit command");
         return 1;
     }
     should_quit = 1;
@@ -915,6 +937,7 @@ bad_arg_count:
 const syntax_tree trmc2_syntax[] = {
     {"*idn", idn, 0, NULL},
     {"help", help, 0, NULL},
+    {"verbose", verbose, 0, NULL},
     {"start", start, 0, NULL},
     {"stop", stop, 0, NULL},
     {"board", NULL, 0, (syntax_tree[]) {

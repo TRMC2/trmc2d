@@ -21,8 +21,8 @@
 #include <netinet/ip.h>
 #include "constants.h"
 #include "parse.h"
-#include "interpreter.h"
 #include "io.h"
+#include "interpreter.h"
 #include "shell.h"
 
 static const char cmdline_help[] =
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
                     while (get_command(cl, command)) {
                         ret = parse(command, trmc2_syntax, cl);
                         if (ret < 0)
-                            push_error(const_name(ret, parse_errors));
+                            report_error(cl, const_name(ret, parse_errors));
                     }
                 } else {         /* client disconnected */
                     close(cl->in);

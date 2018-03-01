@@ -8,8 +8,8 @@
 #include <errno.h>
 #include "constants.h"
 #include "parse.h"
-#include "interpreter.h"
 #include "io.h"
+#include "interpreter.h"
 #include "shell.h"
 
 #ifdef USE_READLINE
@@ -102,7 +102,7 @@ int shell(void)
         ret = parse(line, trmc2_syntax, tty);
         free(line);
         if (ret < 0)
-            push_error(const_name(ret, parse_errors));
+            report_error(tty, const_name(ret, parse_errors));
     }
     if (!should_quit) fputs("quit\n", stdout);  /* exit via Control-D */
     return EXIT_SUCCESS;

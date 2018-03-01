@@ -21,6 +21,7 @@ typedef struct {
     size_t output_pending;      /* number of bytes pending */
     char output_buffer[4096];
     int autoflush;              /* for tty clients only */
+    int verbose;                /* opted-in for verbose mode */
 } client_t;
 
 /* Array of clients. */
