@@ -77,10 +77,7 @@ Or type `tempd -s` as root and talk to it at the keyboard.
 
 ## Bugs
 
-The program is in alpha testing, and not completely finished.
-Many commands are not yet implemented: they generate the error
-`NO_HANDLER`. See interpreter.c for a list of what is actually
-available.
+The program is in beta testing.
 
 Basic temperature measurements should work, as in the following
 example session:

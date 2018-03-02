@@ -537,6 +537,143 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
 
 
 /***********************************************************************
+ * Manage regulations.
+ */
+
+/* regulation sub-commands. */
+enum {r_setpoint, r_p, r_i, r_d, r_max, r_res, r_weight};
+
+/*
+ * Return the index of channel in the weights array, if found.
+ * Otherwise return the index of an available slot, if any.
+ * Otherwise return -1.
+ */
+static int get_regulation_slot(REGULPARAMETER *regul, int channel)
+{
+    /* First search the channel. */
+    for (int i = 0; i < _NB_REGULATING_CHANNEL; i++) {
+        if (regul->IndexofChannel[i] == channel)
+            return i;
+    }
+
+    /* Then search an empty slot. */
+    for (int i = 0; i < _NB_REGULATING_CHANNEL; i++) {
+        if (regul->IndexofChannel[i] == _EMPTY_CHANNEL) {
+            return i;
+        }
+    }
+
+    /* No slot available. */
+    return -1;
+}
+
+static int regulation_handler(void *client, int cmd_data, parsed_command *cmd)
+{
+    REGULPARAMETER regul;
+    int ret, index;
+
+    /* Sanity check. */
+    assert(client != NULL);
+    assert((cmd_data != r_weight && cmd->n_tok == 2)
+            || (cmd_data == r_weight && cmd->n_tok == 3));
+    index = cmd->suffix[0];
+    if (index == -1
+            || (cmd_data != r_weight && cmd->suffix[1] != -1)
+            || (cmd_data == r_weight
+                && (cmd->suffix[1] == -1 || cmd->suffix[2] != -1))
+            || (cmd->query && cmd->n_param != 0)
+            || (!cmd->query && cmd->n_param != 1)) {
+        report_error(client, "Malformed regulation command");
+        return 1;
+    }
+
+    /* Get the current parameters. */
+    regul.Index = index;
+    ret = GetRegulationTRMC(&regul);
+    if (ret) {
+        report_error(client, const_name(ret, error_codes));
+        return 1;
+    }
+
+    /* Change parameters. */
+    if (!cmd->query) {
+        double value = atof(cmd->param[0]);
+        switch (cmd_data) {
+            case r_setpoint: regul.SetPoint        = value; break;
+            case r_p:        regul.P               = value; break;
+            case r_i:        regul.I               = value; break;
+            case r_d:        regul.D               = value; break;
+            case r_max:      regul.HeatingMax      = value; break;
+            case r_res:      regul.HeatingResistor = value; break;
+            case r_weight:;
+                int channel = cmd->suffix[1];
+                int i = get_regulation_slot(&regul, channel);
+                if (i == -1 && value != 0) {
+                    report_error(client,
+                            "At most 4 channels can be used for regulation");
+                    return 1;
+                }
+                if (i != -1) {
+                    if (value == 0) {
+                        regul.IndexofChannel[i] = _EMPTY_CHANNEL;
+                        regul.WeightofChannel[i] = 1;
+                    } else {
+                        regul.IndexofChannel[i] = channel;
+                        regul.WeightofChannel[i] = value;
+                    }
+                }
+                break;
+        }
+        ret = SetRegulationTRMC(&regul);
+        if (ret) {
+            report_error(client, const_name(ret, error_codes));
+            return 1;
+        }
+        if (VERBOSE(client)) {
+            /* Read back the parameters in order to report them. */
+            ret =  GetRegulationTRMC(&regul);
+            if (ret) {
+                report_error(client, const_name(ret, error_codes));
+                return 1;
+            }
+        }
+    }
+
+    /* Report parameters. */
+    if (cmd->query || VERBOSE(client)) switch (cmd_data) {
+        case r_setpoint:
+            queue_output(client, "%g\r\n", regul.SetPoint);
+            break;
+        case r_p:
+            queue_output(client, "%g\r\n", regul.P);
+            break;
+        case r_i:
+            queue_output(client, "%g\r\n", regul.I);
+            break;
+        case r_d:
+            queue_output(client, "%g\r\n", regul.D);
+            break;
+        case r_max:
+            queue_output(client, "%g\r\n", regul.HeatingMax);
+            break;
+        case r_res:
+            queue_output(client, "%g\r\n", regul.HeatingResistor);
+            break;
+        case r_weight:;
+            int channel = cmd->suffix[1];
+            int i = get_regulation_slot(&regul, channel);
+            if (i != -1 && regul.IndexofChannel[i] == channel)
+                queue_output(client, "%g\r\n", regul.WeightofChannel[i]);
+            else
+                queue_output(client, "0\r\n");
+            break;
+    }
+
+    return 0;
+}
+
+
+/***********************************************************************
  * Miscellaneous commands.
  */
 
@@ -1010,13 +1147,16 @@ const syntax_tree trmc2_syntax[] = {
         END_OF_LIST
     }},
     {"regulation", NULL, 0, (syntax_tree[]) {
-        {"setpoint", NULL, 0, NULL},
-        {"p", NULL, 0, NULL},
-        {"i", NULL, 0, NULL},
-        {"d", NULL, 0, NULL},
-        {"max", NULL, 0, NULL},
-        {"resistance", NULL, 0, NULL},
-        {"channel", NULL, 0, NULL},
+        {"setpoint", regulation_handler, r_setpoint, NULL},
+        {"p", regulation_handler, r_p, NULL},
+        {"i", regulation_handler, r_i, NULL},
+        {"d", regulation_handler, r_d, NULL},
+        {"max", regulation_handler, r_max, NULL},
+        {"resistance", regulation_handler, r_res, NULL},
+        {"channel", NULL, 0, (syntax_tree[]) {
+            {"weight", regulation_handler, r_weight, NULL},
+            END_OF_LIST
+        }},
         END_OF_LIST
     }},
     {"error", get_error, 0, (syntax_tree[]) {
