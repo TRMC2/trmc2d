@@ -399,8 +399,13 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             case c_priority:
                 channel.PriorityFlag = atoi(cmd->param[0]);
                 break;
-            case c_fifosz:
-                channel.FifoSize = atoi(cmd->param[0]);
+            case c_fifosz:;
+                int fifo_size = atoi(cmd->param[0]);
+                if (fifo_size < 1) {
+                    report_error(client, "Invalid FIFO size");
+                    return 1;
+                }
+                channel.FifoSize = fifo_size;
                 break;
             case c_conversion:
 
