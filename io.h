@@ -13,16 +13,16 @@
 
 /* Description of a client. */
 typedef struct {
-    int active;                 /* 1 if this slot is used */
+    int active: 1;              /* 1 if this slot is used */
+    int autoflush: 1;           /* for tty clients only */
+    int verbose: 1;             /* opted-in for verbose mode */
+    int quitting: 1;            /* wants to quit */
     int in;                     /* fd for reading */
     int out;                    /* fd for writing */
     size_t input_pending;       /* number of read bytes not processed */
     char input_buffer[COMMAND_LENGTH];  /* NUL-terminated */
     size_t output_pending;      /* number of bytes pending */
     char output_buffer[4096];
-    int autoflush;              /* for tty clients only */
-    int verbose;                /* opted-in for verbose mode */
-    int quitting;               /* wants to quit */
 } client_t;
 
 /* Array of clients. */
