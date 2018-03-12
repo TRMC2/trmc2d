@@ -34,6 +34,7 @@ client_t *get_client_slot(void)
     client[i].output_pending = 0;
     client[i].autoflush = 0;
     client[i].verbose = 0;
+    client[i].quitting = 0;
     return &client[i];
 }
 

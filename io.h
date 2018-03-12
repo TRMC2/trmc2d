@@ -22,6 +22,7 @@ typedef struct {
     char output_buffer[4096];
     int autoflush;              /* for tty clients only */
     int verbose;                /* opted-in for verbose mode */
+    int quitting;               /* wants to quit */
 } client_t;
 
 /* Array of clients. */

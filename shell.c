@@ -103,6 +103,8 @@ int shell(void)
         free(line);
         if (ret < 0)
             report_error(tty, const_name(ret, parse_errors));
+        if (tty->quitting)
+            should_quit = 1;  /* terminate if the client is leaving */
     }
     if (!should_quit) fputs("quit\n", stdout);  /* exit via Control-D */
     return EXIT_SUCCESS;

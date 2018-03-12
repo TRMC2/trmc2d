@@ -719,7 +719,8 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "error?         - pop and return last error from the error stack\r\n"
         "error:count?   - return number of errors in the stack\r\n"
         "error:clear    - clear the error stack\r\n"
-        "quit           - stop the server\r\n"
+        "quit           - disconnect from the server\r\n"
+        "terminate      - terminate the server process\r\n"
         );
     else if (strcmp(cmd->param[0], "board") == 0)
         queue_output(client, "%s",
@@ -855,6 +856,19 @@ static int quit(void *client, unused(int cmd_data), parsed_command *cmd)
 {
     if (cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 0) {
         report_error(client, "Malformed quit command");
+        return 1;
+    }
+    ((client_t *) client)->quitting = 1;
+    if (VERBOSE(client)) {
+        /* No point in queuing a message that will never be sent. */
+    }
+    return 0;
+}
+
+static int terminate(void *client, unused(int cmd_data), parsed_command *cmd)
+{
+    if (cmd->query || cmd->suffix[0] != -1 || cmd->n_param != 0) {
+        report_error(client, "Malformed terminate command");
         return 1;
     }
     should_quit = 1;
@@ -1170,6 +1184,7 @@ const syntax_tree trmc2_syntax[] = {
         END_OF_LIST
     }},
     {"quit", quit, 0, NULL},
+    {"terminate", terminate, 0, NULL},
     {"Start", raw_command, Start, NULL},
     {"Stop", raw_command, Stop, NULL},
     {"GetError", raw_command, GetError, NULL},

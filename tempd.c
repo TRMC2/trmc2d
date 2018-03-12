@@ -177,6 +177,9 @@ int main(int argc, char *argv[])
                             report_error(cl, const_name(ret, parse_errors));
                     }
                 } else {         /* client disconnected */
+                    client->quitting = 1;
+                }
+                if (client->quitting) {
                     close(cl->in);
                     cl->active = 0;
                     client_count--;
