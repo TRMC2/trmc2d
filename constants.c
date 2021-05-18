@@ -91,6 +91,9 @@ define const error_codes[] = {
     {"_WRONG_ANSWER_IN_BASE", -37 },
     {"_TIMER_NOT_CAPABLE", -29},
     {"_INTERNAL_INCONSISTENCY", -44},
+    {"_CANNOT_FIND_GPIO_CHIP", -60},
+    {"_CANNOT_FIND_GPIO_LINE", -61},
+    {"_CANNOT_RESERVE_GPIO_LINE", -62},
     {NULL, 0}
 };
 
