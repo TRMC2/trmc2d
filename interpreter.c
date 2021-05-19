@@ -941,7 +941,8 @@ static int raw_command(void *client, int cmd_data, parsed_command *cmd)
             if (is_getter)
                 bywhat = atoi(cmd->param[1]);
             int N = 1 + is_getter;
-            strncpy(channel.name, cmd->param[N+0], _LENGTHOFNAME);
+            strncpy(channel.name, cmd->param[N+0], _LENGTHOFNAME - 1);
+            channel.name[_LENGTHOFNAME - 1] = '\0';
             channel.ValueRangeI =    atof(cmd->param[N+1]);
             channel.ValueRangeV =    atof(cmd->param[N+2]);
             channel.BoardAddress =   atoi(cmd->param[N+3]);
@@ -986,7 +987,8 @@ static int raw_command(void *client, int cmd_data, parsed_command *cmd)
             if (cmd->n_param != 11 + 2 * _NB_REGULATING_CHANNEL)
                 goto bad_arg_count;
             REGULPARAMETER r;
-            strncpy(r.name, cmd->param[1], _LENGTHOFNAME);
+            strncpy(r.name, cmd->param[1], _LENGTHOFNAME - 1);
+            r.name[_LENGTHOFNAME - 1] = '\0';
             r.SetPoint =        atof(cmd->param[2]);
             r.P =               atof(cmd->param[3]);
             r.I =               atof(cmd->param[4]);
