@@ -13,10 +13,10 @@
 
 /* Description of a client. */
 typedef struct {
-    int active: 1;              /* 1 if this slot is used */
-    int autoflush: 1;           /* for tty clients only */
-    int verbose: 1;             /* opted-in for verbose mode */
-    int quitting: 1;            /* wants to quit */
+    unsigned int active: 1;     /* 1 if this slot is used */
+    unsigned int autoflush: 1;  /* for tty clients only */
+    unsigned int verbose: 1;    /* opted-in for verbose mode */
+    unsigned int quitting: 1;   /* wants to quit */
     int in;                     /* fd for reading */
     int out;                    /* fd for writing */
     size_t input_pending;       /* number of read bytes not processed */
