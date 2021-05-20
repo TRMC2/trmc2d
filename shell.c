@@ -82,6 +82,7 @@ int shell(void)
     tty->in = 0;          /* stdin, actually unused */
     tty->out = 1;         /* stdout */
     tty->autoflush = 1;   /* don't have to call process_output() */
+    tty->verbose = 1;     /* start in verbose mode */
 
     const char *term = getenv("TERM");
     const char *prompt;
