@@ -31,10 +31,11 @@ client_t *get_client_slot(void)
 
     for (i=0; i<MAX_CLIENTS; i++) if (!client[i].active) break;
     if (i == MAX_CLIENTS) return NULL;
-    client[i].output_pending = 0;
     client[i].autoflush = 0;
     client[i].verbose = 0;
     client[i].quitting = 0;
+    client[i].input_pending = 0;
+    client[i].output_pending = 0;
     return &client[i];
 }
 
