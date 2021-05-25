@@ -219,6 +219,14 @@ verbose mode.</li>
     <td>Sets the size, in number of data points, that should be allocated
     to the fifo buffer</td>
 </tr><tr>
+    <td class="l2">:config?</td>
+    <td>Gets the configuration of channel <i>i</i>. Returns the answers
+    to the channel commands <code>:mode?</code>,
+    <code>:averaging?</code>, <code>:polling?</code>,
+    <code>:priority?</code>, <code>:fifosize?</code>,
+    <code>:voltage:range?</code> and <code>:current:range?</code>, in
+    that order, separated by commas.</td>
+</tr><tr>
     <td class="l2">:conversion plugin, function [, parameters]</td>
     <td>Sets a conversion routine for converting raw data into
     temperature (see below)</td>

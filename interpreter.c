@@ -113,7 +113,7 @@ static int clear_errors(void *client,
 enum {nb_boards, nb_channels, b_type, b_address, b_status,
     b_calibration, b_vranges_cnt, b_vranges, b_iranges_cnt, b_iranges,
     c_vrange, c_irange, c_address, c_type, c_mode, c_avg, c_polling,
-    c_priority, c_fifosz, c_conversion, format, measure};
+    c_priority, c_fifosz, c_config, c_conversion, format, measure};
 
 static int get_number(void *client, int cmd_data, parsed_command *cmd)
 {
@@ -497,6 +497,15 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
         case c_fifosz:
             queue_output(client, "%d\r\n", channel.FifoSize);
             break;
+        case c_config:
+            queue_output(client, "%d (%s), %d, %d, %d (%s), %d, %g, %g\r\n",
+                    channel.Mode, const_name(channel.Mode, Mode_names),
+                    channel.PreAveraging, channel.ScrutationTime,
+                    channel.PriorityFlag,
+                    const_name(channel.PriorityFlag, Priority_names),
+                    channel.FifoSize, channel.ValueRangeV,
+                    channel.ValueRangeI);
+            break;
         case c_conversion:
             channel_extras = get_channel_extras(index);
             if (!channel_extras->conversion) {
@@ -746,6 +755,8 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "polling N       - set the polling count\r\n"
         "priority N      - set the priority mode\r\n"
         "fifosize N      - set the FIFO size\r\n"
+        "config?         - return the configuration (mode, averaging,\r\n"
+        "    polling, priority, fifosize, voltage:range, current:range)\r\n"
         "conversion plugin,function,initialization - define a conversion\r\n"
         "measure:format list - define the measurement format\r\n"
         "    possible list items: raw, converted, range_i, range_v,\r\n"
@@ -1160,6 +1171,7 @@ const syntax_tree trmc2_syntax[] = {
         {"polling", channel_handler, c_polling, NULL},
         {"priority", channel_handler, c_priority, NULL},
         {"fifosize", channel_handler, c_fifosz, NULL},
+        {"config", channel_handler, c_config, NULL},
         {"conversion", channel_handler, c_conversion, NULL},
         {"measure", channel_handler, measure, (syntax_tree[]) {
             {"format", channel_handler, format, NULL},
