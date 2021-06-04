@@ -113,7 +113,7 @@ static int clear_errors(void *client,
 enum {nb_boards, nb_channels, b_type, b_address, b_status,
     b_calibration, b_vranges_cnt, b_vranges, b_iranges_cnt, b_iranges,
     c_vrange, c_irange, c_address, c_type, c_mode, c_avg, c_polling,
-    c_priority, c_fifosz, c_config, c_conversion, format, measure};
+    c_priority, c_fifosz, c_config, c_conversion, format, measure, flush};
 
 static int get_number(void *client, int cmd_data, parsed_command *cmd)
 {
@@ -361,6 +361,9 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             case format:
                 n_param_ok = cmd->n_param >= 1;
                 break;
+            case flush:
+                n_param_ok = cmd->n_param == 0;
+                break;
             default:
                 n_param_ok = cmd->n_param == 1;
         }
@@ -448,6 +451,15 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 }
                 format[cmd->n_param] = '\0';
                 break;
+            case flush:
+                ret = FlushFifoTRMC(index);
+                if (ret < 0) {
+                    report_error(client, const_name(ret, error_codes));
+                    return 1;
+                }
+                if (VERBOSE(client))
+                    queue_output(client, "Channel buffer flushed.\r\n");
+                return 0;  // not changing a parameter
         }
         ret = SetChannelTRMC(&channel);
         if (ret) {
@@ -1175,6 +1187,7 @@ const syntax_tree trmc2_syntax[] = {
         {"conversion", channel_handler, c_conversion, NULL},
         {"measure", channel_handler, measure, (syntax_tree[]) {
             {"format", channel_handler, format, NULL},
+            {"flush", channel_handler, flush, NULL},
             END_OF_LIST
         }},
         END_OF_LIST
