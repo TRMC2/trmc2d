@@ -65,13 +65,12 @@ which board or channel the command will affect).</p>
 <dd>queries a measurement on the second channel</dd>
 </dl>
 
-<p>Some commands are query only while others have both query and
-imperative forms. In the tables below, the former are listed in query
-form and the latter in imperative form. Indentation in the first column
-of the tables means that what is listed is not the full command: you
+<p>Some commands are query only or imperative only, while others have
+both query and imperative forms. In the tables below, indentation in the
+first column means that what is listed is not the full command: you
 should add the last non-indented word as a prefix. For example, the
 command for querying the type of board <i>i</i> is
-<code>board<i>i</i>:type?</code> (first table). Brackets ([]) around a
+<code>board<i>i</i>:type?</code> (second table). Brackets ([]) around a
 parameter mean the parameter is optional. <strong>Do not include the
 brackets</strong> in the commands you send to tempd.</p>
 
@@ -97,6 +96,9 @@ brackets</strong> in the commands you send to tempd.</p>
     <td>Set (value = 1) or clear (value = 0) verbose mode. Verbose mode
     is not SCPI-compliant. This is a per-client setting and is off by
     default.</td>
+</tr><tr>
+    <td class="l1">verbose?</td>
+    <td>Queries the verbose mode.</td>
 </tr><tr>
     <td class="l1">start freq [, port]</td>
     <td>Starts the TRMC2 on the given serial port (1 or 2) at the given
@@ -159,7 +161,11 @@ verbose mode.</li>
     <td>Queries the status of board <i>i</i></td>
 </tr><tr>
     <td class="l2">:calibration file_name</td>
-    <td>Use the named file as a calibration table</td>
+    <td><b>Not implemented.</b>
+    Use the named file as a calibration table</td>
+</tr><tr>
+    <td class="l2">:calibration?</td>
+    <td>Queries the number of calibration measurements</td>
 </tr><tr>
     <td class="l2">:vranges:count?</td>
     <td>Queries the number of available voltage ranges</td>
@@ -193,8 +199,14 @@ verbose mode.</li>
     <td class="l2">:voltage:range value</td>
     <td>Sets the voltage range on channel <i>i</i></td>
 </tr><tr>
+    <td class="l2">:voltage:range?</td>
+    <td>Queries the voltage range</td>
+</tr><tr>
     <td class="l2">:current:range value</td>
     <td>Sets the current range on channel <i>i</i></td>
+</tr><tr>
+    <td class="l2">:current:range?</td>
+    <td>Queries the current range</td>
 </tr><tr>
     <td class="l2">:addresses?</td>
     <td>Queries the board and channel addresses</td>
@@ -202,22 +214,38 @@ verbose mode.</li>
     <td class="l2">:type?</td>
     <td>Queries the channel type</td>
 </tr><tr>
-    <td class="l2">:mode</td>
+    <td class="l2">:mode number</td>
     <td>Sets the channel mode</td>
 </tr><tr>
-    <td class="l2">:averaging</td>
+    <td class="l2">:mode?</td>
+    <td>Queries the channel mode</td>
+</tr><tr>
+    <td class="l2">:averaging number</td>
     <td>Sets the number of data points that should be averaged</td>
 </tr><tr>
-    <td class="l2">:polling</td>
-    <td>Sets the number of data points that should be taken before
-    switching to another channel.</td>
+    <td class="l2">:averaging?</td>
+    <td>Queries the number of data points that are averaged</td>
 </tr><tr>
-    <td class="l2">:priority</td>
+    <td class="l2">:polling number</td>
+    <td>Sets the number of data points that should be taken before
+    switching to another channel</td>
+</tr><tr>
+    <td class="l2">:polling?</td>
+    <td>Queries the number of data points taken before switching to
+    another channel</td>
+</tr><tr>
+    <td class="l2">:priority number</td>
     <td>Sets the priority mode</td>
 </tr><tr>
-    <td class="l2">:fifosize</td>
+    <td class="l2">:priority?</td>
+    <td>Queries the priority mode</td>
+</tr><tr>
+    <td class="l2">:fifosize number</td>
     <td>Sets the size, in number of data points, that should be allocated
-    to the fifo buffer</td>
+    to the FIFO buffer</td>
+</tr><tr>
+    <td class="l2">:fifosize?</td>
+    <td>Queries the FIFO size</td>
 </tr><tr>
     <td class="l2">:config?</td>
     <td>Gets the configuration of channel <i>i</i>. Returns the answers
@@ -231,13 +259,19 @@ verbose mode.</li>
     <td>Sets a conversion routine for converting raw data into
     temperature (see below)</td>
 </tr><tr>
-    <td class="l2">:measure:format</td>
+    <td class="l2">:conversion?</td>
+    <td>Queries the conversion settings</td>
+</tr><tr>
+    <td class="l2">:measure:format word [, word...]</td>
     <td>Sets the output format of measurements. The provided format
     should be a comma-separated list of words among <code>raw</code>,
     <code>converted</code>, <code>range_i</code>, <code>range_v</code>,
     <code>time</code>, <code>status</code>, <code>number</code> and
     <code>count</code>, where <code>count</code> stands for the number
     of readings that were in the fifo <em>before</em> the read.</td>
+</tr><tr>
+    <td class="l2">:measure:format?</td>
+    <td>Queries the output format of measurements</td>
 </tr><tr>
     <td class="l2">:measure?</td>
     <td>Queries a measurement. The result is provided in the format
@@ -350,27 +384,46 @@ maximum of four channels can have non-zero weight.</p>
     <td class="l1">regulation<i>i</i></td>
     <td></td>
 </tr><tr>
-    <td class="l2">:setpoint</td>
+    <td class="l2">:setpoint value</td>
     <td>Set the temperature setpoint</td>
 </tr><tr>
-    <td class="l2">:p</td>
+    <td class="l2">:setpoint?</td>
+    <td>Query the temperature setpoint</td>
+</tr><tr>
+    <td class="l2">:p value</td>
     <td rowspan="3">Set the coefficients of the PID feedback loop</td>
 </tr><tr>
-    <td class="l2">:i</td>
+    <td class="l2">:i value</td>
 </tr><tr>
-    <td class="l2">:d</td>
+    <td class="l2">:d value</td>
 </tr><tr>
-    <td class="l2">:max</td>
+    <td class="l2">:p?</td>
+    <td rowspan="3">Query the PID coefficients</td>
+</tr><tr>
+    <td class="l2">:i?</td>
+</tr><tr>
+    <td class="l2">:d?</td>
+</tr><tr>
+    <td class="l2">:max value</td>
     <td>Set the maximum heating power</td>
 </tr><tr>
-    <td class="l2">:resistance</td>
+    <td class="l2">:max?</td>
+    <td>Query the maximum heating power</td>
+</tr><tr>
+    <td class="l2">:resistance value</td>
     <td>Set the resistance that should be used for power
     calculations, it should match the resistance of the heating
     element</td>
 </tr><tr>
-    <td class="l2">:channel<i>j</i>:weight</td>
-    <td>weight that should be given to channel <i>j</i> for the
+    <td class="l2">:resistance?</td>
+    <td>Query the resistance used for power calculations</td>
+</tr><tr>
+    <td class="l2">:channel<i>j</i>:weight value</td>
+    <td>Set the weight that should be given to channel <i>j</i> for the
     estimation of the temperature</td>
+</tr><tr>
+    <td class="l2">:channel<i>j</i>:weight?</td>
+    <td>Query the weight that of channel <i>j</i></td>
 </tr>
 </table>
 
