@@ -773,6 +773,7 @@ static int help(void *client, unused(int cmd_data), parsed_command *cmd)
         "measure:format list - define the measurement format\r\n"
         "    possible list items: raw, converted, range_i, range_v,\r\n"
         "    time, status, number, count\r\n"
+        "measure:flush   - discard all buffered measurements\r\n"
         "measure?        - return a measurement\r\n"
         );
     else if (strcmp(cmd->param[0], "regulation") == 0)
