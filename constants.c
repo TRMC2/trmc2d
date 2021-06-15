@@ -105,18 +105,6 @@ define const parse_errors[] = {
     {NULL, 0}
 };
 
-/* Get the #defined value from the name. */
-int lookup(const char *name, const define *table)
-{
-    int i;
-
-    for (i = 0; table[i].name; i++)
-        if (strcmp(table[i].name, name) == 0) return table[i].value;
-    fprintf(stderr, "Could not find \"%s\" in table {\"%s\", ...}\n",
-            name, table[0].name);
-    return 0;
-}
-
 /* Get the #defined name from the value. */
 const char *const_name(int value, const define *table)
 {

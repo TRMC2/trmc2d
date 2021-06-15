@@ -19,8 +19,5 @@ extern const define board_mode_names[];
 extern const define error_codes[];
 extern const define parse_errors[];
 
-/* Get the #defined value from the name. */
-int lookup(const char *name, const define *table);
-
 /* Get the #defined name from the value. */
 const char *const_name(int value, const define *table);
