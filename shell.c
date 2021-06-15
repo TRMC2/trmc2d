@@ -97,8 +97,7 @@ int shell(void)
                 history->entries[history->length-1] : NULL;
         char *last_line = last_entry ? last_entry->line : NULL;
         if (line && *line &&
-                (!last_line ||
-                (last_line && strcmp(line, last_line) != 0)))
+                (!last_line || strcmp(line, last_line) != 0))
             add_history(line);
         ret = parse(line, trmc2_syntax, tty);
         free(line);
