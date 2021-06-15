@@ -78,13 +78,12 @@ error:
 double linear(double x, void *data)
 {
     conversion_table *t = data;
-    static int i, j, k;
-    double slope;
 
     /* Return Not a Number if out of table. */
     if (x<t->x[0] || x>t->x[t->n-1]) return NAN;
 
     /* Optimization: look first close to the last used interval. */
+    int i, j;
     if (x > t->x[t->last]) i = t->last;
     else if (t->last>0 && x>t->x[t->last-1]) i = t->last - 1;
     else i = 0;
@@ -94,7 +93,7 @@ double linear(double x, void *data)
 
     /* Search the right interval by bisection. */
     while (j-i > 1) {
-        k = (i+j) / 2;
+        int k = (i+j) / 2;
         if (x > t->x[k]) i = k;
         else j = k;
     }
@@ -103,7 +102,7 @@ double linear(double x, void *data)
     t->last = i;
 
     /* Interpolate. */
-    slope = (t->y[i+1] - t->y[i]) / (t->x[i+1] - t->x[i]);
+    double slope = (t->y[i+1] - t->y[i]) / (t->x[i+1] - t->x[i]);
     return t->y[i] + (x - t->x[i]) * slope;
 }
 
@@ -127,8 +126,7 @@ void linear_cleanup(void *data)
 
 int main(int argc, char *argv[])
 {
-    void *data;
-    double x, y, start, stop, step;
+    double start, stop, step;
 
     /* Read command line. */
     if (argc != 5) {
@@ -140,15 +138,15 @@ int main(int argc, char *argv[])
     step = atof(argv[4]);
 
     /* Init. */
-    data = linear_init(argv[1]);
+    void *data = linear_init(argv[1]);
     if (!data) {
         fprintf(stderr, "linear_init() failed\n");
         return EXIT_FAILURE;
     }
 
     /* Output a table of interpolated values. */
-    for (x = start; x < stop + step/2; x += step) {
-        y = linear(x, data);
+    for (double x = start; x < stop + step/2; x += step) {
+        double y = linear(x, data);
         printf("%g\t%g\n", x, y);
     }
 
