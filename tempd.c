@@ -39,7 +39,7 @@ static const char cmdline_help[] =
 
 static const char optstring[] = "hscp:u:n:d";
 
-#define FD_SET_M(fd, set) do { FD_SET(fd, set); \
+#define FD_SET_M(fd, set, max_fd) do { FD_SET(fd, set); \
         max_fd = fd>max_fd ? fd : max_fd; } while (0)
 
 int main(int argc, char *argv[])
@@ -131,13 +131,13 @@ int main(int argc, char *argv[])
         for (i=0; i<MAX_CLIENTS; i++) {
             cl = &client[i];
             if (cl->active) {
-                FD_SET_M(cl->in, &rfds);
+                FD_SET_M(cl->in, &rfds, max_fd);
                 if (cl->output_pending)
-                    FD_SET_M(cl->out, &wfds);
+                    FD_SET_M(cl->out, &wfds, max_fd);
             }
         }
         cl = get_client_slot();
-        if (cl) FD_SET_M(ls, &rfds);
+        if (cl) FD_SET_M(ls, &rfds, max_fd);
         ret = select(max_fd + 1, &rfds, &wfds, NULL, NULL);
         if (ret == -1) {
             if (errno == EINTR)    /* Interrupted system call */
