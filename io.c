@@ -79,7 +79,7 @@ int get_socket(int domain, int port, const char *name)
     const int one = 1;
     err = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);
     if (err == -1) {
-        syslog(LOG_ERR, "setsockopt(SO_REUSEADDR): %m\n"); return -1;
+        syslog(LOG_ERR, "setsockopt(SO_REUSEADDR): %m\n");
         return -1;
     }
 
