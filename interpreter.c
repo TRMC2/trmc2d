@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <syslog.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <Trmc.h>
@@ -253,6 +254,10 @@ static channel_t *get_channel_extras(int index)
     if (count == allocated) {
         allocated += 16;
         channels = realloc(channels, allocated * sizeof *channels);
+        if (!channels) {
+            syslog(LOG_ERR, "realloc: %m\n");
+            exit(EXIT_FAILURE);
+        }
     }
     channels[count].index = index;
     channels[count].conversion = NULL;
