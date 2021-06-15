@@ -76,7 +76,6 @@ int shell(void)
 {
     client_t *tty;
     char *line;
-    int ret;
 
     tty = get_client_slot();
     tty->in = 0;          /* stdin, actually unused */
@@ -99,7 +98,7 @@ int shell(void)
         if (line && *line &&
                 (!last_line || strcmp(line, last_line) != 0))
             add_history(line);
-        ret = parse(line, trmc2_syntax, tty);
+        int ret = parse(line, trmc2_syntax, tty);
         free(line);
         if (ret < 0)
             report_error(tty, const_name(ret, parse_errors));

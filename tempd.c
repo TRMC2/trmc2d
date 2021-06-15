@@ -61,8 +61,6 @@ int main(int argc, char *argv[])
     int domain = AF_INET;
     socklen_t peer_lg = sizeof(struct sockaddr_in);
     fd_set rfds, wfds;
-    int max_fd;
-    int ret;
 
     /* Process options. */
     while ((opt=getopt(argc, argv, optstring)) != -1) switch(opt) {
@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
         /* select() loop. */
         FD_ZERO(&rfds);
         FD_ZERO(&wfds);
-        max_fd = 0;
+        int max_fd = 0;
         for (i=0; i<MAX_CLIENTS; i++) {
             cl = &client[i];
             if (cl->active) {
@@ -138,7 +136,7 @@ int main(int argc, char *argv[])
         }
         cl = get_client_slot();
         if (cl) FD_SET_M(ls, &rfds, max_fd);
-        ret = select(max_fd + 1, &rfds, &wfds, NULL, NULL);
+        int ret = select(max_fd + 1, &rfds, &wfds, NULL, NULL);
         if (ret == -1) {
             if (errno == EINTR)    /* Interrupted system call */
                 continue;

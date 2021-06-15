@@ -149,7 +149,7 @@ static int get_number(void *client, int cmd_data, parsed_command *cmd)
 /* Handle boards by calling GetBoardTRMC() and SetBoardTRMC(). */
 static int board_handler(void *client, int cmd_data, parsed_command *cmd)
 {
-    int ret, index, i;
+    int ret, index;
     BOARDPARAMETER board;
 
     assert(client != NULL);
@@ -197,7 +197,7 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
             queue_output(client, "%d\r\n", board.NumberofIRanges);
             break;
         case b_vranges:
-            for (i=0; i<board.NumberofVRanges; i++) {
+            for (int i=0; i<board.NumberofVRanges; i++) {
                 queue_output(client, "%g", board.VRangesTable[i]);
                 if (i < board.NumberofVRanges - 1)
                     queue_output(client, ",");
@@ -205,7 +205,7 @@ static int board_handler(void *client, int cmd_data, parsed_command *cmd)
             queue_output(client, "\r\n");
             break;
         case b_iranges:
-            for (i=0; i<board.NumberofIRanges; i++) {
+            for (int i=0; i<board.NumberofIRanges; i++) {
                 queue_output(client, "%g", board.IRangesTable[i]);
                 if (i < board.NumberofIRanges - 1)
                     queue_output(client, ",");
