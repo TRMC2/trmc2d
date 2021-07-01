@@ -19,6 +19,7 @@
 #include <sys/un.h>
 #include <sys/stat.h>
 #include <netinet/ip.h>
+#include <netinet/tcp.h>
 #include "io.h"
 
 /* Array of clients. */
@@ -81,6 +82,24 @@ int get_socket(int domain, int port, const char *name)
     if (err == -1) {
         syslog(LOG_ERR, "setsockopt(SO_REUSEADDR): %m\n");
         return -1;
+    }
+
+    /* Send frequent keepalive probes to detect peer going down. */
+    if (domain == AF_INET) {
+        int val = 1;  // boolean: enable keepalive
+        err = setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof val);
+        if (err == -1) {
+            syslog(LOG_ERR, "setsockopt(SO_KEEPALIVE): %m\n");
+            return -1;
+        }
+#ifdef TCP_KEEPIDLE
+        val = 600;  // send keepalives after 10 min idle time
+        err = setsockopt(s, IPPROTO_TCP, TCP_KEEPIDLE, &val, sizeof val);
+        if (err == -1) {
+            syslog(LOG_ERR, "setsockopt(TCP_KEEPALIVE): %m\n");
+            return -1;
+        }
+#endif
     }
 
     /* bind() it. */
