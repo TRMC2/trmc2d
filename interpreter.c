@@ -9,10 +9,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <syslog.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <Trmc.h>
 #include "parse.h"
 #include "constants.h"
