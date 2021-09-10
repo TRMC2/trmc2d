@@ -70,13 +70,33 @@
 #endif  /* if !defined(USE_READLINE) */
 
 int force_color_prompt;
+static client_t *tty;
+
+static void handle_line(char *line)
+{
+    /* Exit on EOF (Ctrl-D). */
+    if (!line) {
+        fputs("quit\n", stdout);
+        should_quit = 1;
+        return;
+    }
+
+    HIST_ENTRY *last_entry = history_get(history_length - 1);
+    const char *last_line = last_entry ? last_entry->line : NULL;
+    if (line && *line &&
+            (!last_line || strcmp(line, last_line) != 0))
+        add_history(line);
+    int ret = parse(line, trmc2_syntax, tty);
+    free(line);
+    if (ret < 0)
+        report_error(tty, const_name(ret, parse_errors));
+    if (tty->quitting)
+        should_quit = 1;  /* terminate if the client is leaving */
+}
 
 /* Read lines on stdin and send them to parse(). */
 int shell(void)
 {
-    client_t *tty;
-    char *line;
-
     tty = get_client_slot();
     tty->in = 0;          /* stdin, actually unused */
     tty->out = 1;         /* stdout */
@@ -90,19 +110,10 @@ int shell(void)
     else
         prompt = "tempd> ";
 
-    while (!should_quit && (line = readline(prompt)) != NULL) {
-        HIST_ENTRY *last_entry = history_get(history_length - 1);
-        const char *last_line = last_entry ? last_entry->line : NULL;
-        if (line && *line &&
-                (!last_line || strcmp(line, last_line) != 0))
-            add_history(line);
-        int ret = parse(line, trmc2_syntax, tty);
-        free(line);
-        if (ret < 0)
-            report_error(tty, const_name(ret, parse_errors));
-        if (tty->quitting)
-            should_quit = 1;  /* terminate if the client is leaving */
+    while (!should_quit) {
+        char *line = readline(prompt);
+        handle_line(line);
     }
-    if (!should_quit) fputs("quit\n", stdout);  /* exit via Control-D */
+
     return EXIT_SUCCESS;
 }
