@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/select.h>
 #include "constants.h"
 #include "parse.h"
 #include "io.h"
@@ -31,34 +33,58 @@
      * Naive replacement for libreadline, with no fancy line editing.
      */
 
-    #include <string.h>
     #define LINE_LENGTH 1024
 
     #define COLOR_TEMPD   "\x1b[33m"
     #define COLOR_ARROW   "\x1b[1;34m"
     #define COLOR_DEFAULT "\x1b[0m"
 
-    char *readline(const char *prompt)
+    const char *rl_prompt;
+    void (*rl_handler)(char *);
+    char *rl_line;
+    size_t rl_pos;
+
+    void rl_callback_handler_install(const char *prompt,
+            void (*handler)(char *))
     {
-        fputs(prompt, stdout);
-        char * line = malloc(LINE_LENGTH);
-        char * ret;
+        rl_prompt = prompt;
+        rl_handler = handler;
+        fputs(rl_prompt, stdout);
+        fflush(stdout);
+    }
 
-        /* Retry reading as long as we get interrupted. */
-        do ret = fgets(line, LINE_LENGTH, stdin);
-        while (!ret && errno == EINTR);
+    void rl_callback_handler_remove(void)
+    {
+        rl_prompt = NULL;
+    }
 
-        /* Return NULL if EOF on empty line. */
-        if (!ret) {
-            free(line);
-            return NULL;
+    /* Handle terminal input assuming canonical mode. */
+    void rl_callback_read_char(void)
+    {
+        if (!rl_line)
+            rl_line = malloc(LINE_LENGTH);
+
+        char *p = rl_line + rl_pos;
+        size_t available = LINE_LENGTH - rl_pos;
+        ssize_t sz = read(STDIN_FILENO, p, available);
+        if (sz < 0) {  // error, presumably EINTR
+            if (errno != EINTR) perror("stdin");
+        } else if (sz == 0) {  // EOF
+            rl_handler(NULL);
+        } else {  // something actually read
+            rl_pos += sz;
+            char *eol = rl_line + rl_pos - 1;
+            if (*eol == '\n') {
+                *eol = '\0';
+                rl_handler(rl_line);  // this free()s rl_line
+                rl_line = NULL;
+                rl_pos = 0;
+                if (rl_prompt) {
+                    fputs(rl_prompt, stdout);
+                    fflush(stdout);
+                }
+            }
         }
-
-        /* Remove trailing '\n'. */
-        char * eol = line + strlen(line) - 1;
-        if (*eol == '\n') *eol = '\0';
-
-        return line;
     }
 
     /* History not supported. */
@@ -78,6 +104,7 @@ static void handle_line(char *line)
     if (!line) {
         fputs("quit\n", stdout);
         should_quit = 1;
+        rl_callback_handler_remove();
         return;
     }
 
@@ -92,6 +119,8 @@ static void handle_line(char *line)
         report_error(tty, const_name(ret, parse_errors));
     if (tty->quitting)
         should_quit = 1;  /* terminate if the client is leaving */
+    if (should_quit)
+        rl_callback_handler_remove();
 }
 
 /* Read lines on stdin and send them to parse(). */
@@ -110,9 +139,20 @@ int shell(void)
     else
         prompt = "tempd> ";
 
+    /* Process commands. */
+    rl_callback_handler_install(prompt, handle_line);
     while (!should_quit) {
-        char *line = readline(prompt);
-        handle_line(line);
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+        int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, NULL);
+
+        /* Restart on interrupted system call. */
+        if (ret == -1 && errno == EINTR)
+                continue;
+
+        if (FD_ISSET(STDIN_FILENO, &fds))
+            rl_callback_read_char();
     }
 
     return EXIT_SUCCESS;
