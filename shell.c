@@ -63,8 +63,8 @@
 
     /* History not supported. */
     typedef struct { char *line; } HIST_ENTRY;
-    typedef struct { HIST_ENTRY **entries; int length; } HISTORY_STATE;
-    HISTORY_STATE *history_get_history_state(void) { return NULL; }
+    const int history_length = 0;
+    HIST_ENTRY *history_get(int index) { (void) index; return NULL; }
     void add_history(const char *string) { (void) string; }
 
 #endif  /* if !defined(USE_READLINE) */
@@ -91,10 +91,8 @@ int shell(void)
         prompt = "tempd> ";
 
     while (!should_quit && (line = readline(prompt)) != NULL) {
-        HISTORY_STATE *history = history_get_history_state();
-        HIST_ENTRY *last_entry = history && history->entries ?
-                history->entries[history->length-1] : NULL;
-        char *last_line = last_entry ? last_entry->line : NULL;
+        HIST_ENTRY *last_entry = history_get(history_length - 1);
+        const char *last_line = last_entry ? last_entry->line : NULL;
         if (line && *line &&
                 (!last_line || strcmp(line, last_line) != 0))
             add_history(line);
