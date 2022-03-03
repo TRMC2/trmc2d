@@ -1,5 +1,5 @@
 #
-# Makefile for the tempd temperature daemon.
+# Makefile for the trmc2d temperature daemon.
 #
 
 
@@ -9,7 +9,7 @@
 # Install locations for the program and its plugins.
 INSTALLDIR = /usr/local
 BINDIR     = $(INSTALLDIR)/bin
-PLUGINDIR  = $(INSTALLDIR)/lib/tempd
+PLUGINDIR  = $(INSTALLDIR)/lib/trmc2d
 
 # Comment-out if libreadline is not available.
 # Doing so will disable line editing facilities in shell mode.
@@ -40,12 +40,12 @@ LDFLAGS =
 # End of user-accessible settings.
 ########################################################################
 
-OBJS = tempd.o shell.o io.o interpreter.o parse.o constants.o plugin.o
+OBJS = trmc2d.o shell.o io.o interpreter.o parse.o constants.o plugin.o
 LDLIBS = -ltrmc2 -ldl -lm
 
 ifdef WITH_READLINE
     shell.o: CFLAGS += -DUSE_READLINE
-    tempd:   LDLIBS += -lreadline -ltermcap
+    trmc2d:  LDLIBS += -lreadline -ltermcap
 endif
 
 # Get version information.
@@ -58,9 +58,9 @@ export CC CFLAGS WITH_GSL WITH_MATHEVAL PLUGINDIR
 ########################################################################
 # Rules.
 
-all:    tempd plugins
+all:    trmc2d plugins
 
-tempd:  $(OBJS)
+trmc2d: $(OBJS)
 		$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 plugins:
@@ -72,24 +72,24 @@ tags:   *.[ch]
 %.o:    %.c
 		$(CC) $(CFLAGS) -c $<
 
-install: tempd
+install: trmc2d
 		mkdir -p $(BINDIR)
-		install -s tempd $(BINDIR)
+		install -s trmc2d $(BINDIR)
 		$(MAKE) -C plugins install
-		install -m 644 tempd.service /etc/systemd/system
-		systemctl enable tempd
-		@echo "\n*** tempd successfully installed. ***"
-		@echo "To start tempd now, type: sudo systemctl start tempd"
+		install -m 644 trmc2d.service /etc/systemd/system
+		systemctl enable trmc2d
+		@echo "\n*** trmc2d successfully installed. ***"
+		@echo "To start trmc2d now, type: sudo systemctl start trmc2d"
 
 uninstall:
-		systemctl stop tempd || true
-		systemctl disable tempd || true
-		rm -f /etc/systemd/system/tempd.service
-		rm -f $(BINDIR)/tempd
+		systemctl stop trmc2d || true
+		systemctl disable trmc2d || true
+		rm -f /etc/systemd/system/trmc2d.service
+		rm -f $(BINDIR)/trmc2d
 		$(MAKE) -C plugins uninstall
 
 clean:
-		rm -f tempd tags $(OBJS) core.*
+		rm -f trmc2d tags $(OBJS) core.*
 		$(MAKE) -C plugins clean
 
 .PHONY: all plugins clean
@@ -102,6 +102,6 @@ constants.o:    constants.h parse.h
 interpreter.o:  parse.h constants.h interpreter.h io.h plugin.h
 io.o:           io.h
 parse.o:        parse.h
-tempd.o:        parse.h interpreter.h io.h shell.h
+trmc2d.o:       parse.h interpreter.h io.h shell.h
 shell.o:        constants.h parse.h interpreter.h io.h shell.h
 plugin.o:       plugin.h

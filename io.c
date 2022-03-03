@@ -1,5 +1,5 @@
 /*
- * Network and IO functions for tempd. Mostly stolen from fieldd.
+ * Network and IO functions for trmc2d. Mostly stolen from fieldd.
  *
  * To avoid blocking on input, we do a single read() when select() tells
  * us it will not block. To avoid blocking on output, we write

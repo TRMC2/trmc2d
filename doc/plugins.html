@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Writing plugins for tempd</title>
+    <title>Writing plugins for trmc2d</title>
     <style type="text/css">
         body { background: white; font-family: sans-serif;
             margin-left: 3%; margin-right: 3% }
@@ -15,13 +15,13 @@
     </style>
 </head><body>
 
-<h1>Writing plugins for tempd</h1>
+<h1>Writing plugins for trmc2d</h1>
 
 <h2>What for?</h2>
 
 <p>The TRMC2 measures resistances, voltages or capacitances. Some
 function is needed to convert these raw measurements into temperature.
-tempd allows the user to provide this function in the form of a dynamic
+trmc2d allows the user to provide this function in the form of a dynamic
 library, henceforth called plugin. It will use this conversion function
 not only to output the measurement results in kelvins, but also to
 regulate the temperature to a given value.</p>
@@ -75,7 +75,7 @@ different channels with different initialization data. That's why you
 should not store that data in static memory (i.e. global variables).
 Instead you should <code>malloc()</code> the memory you need and store
 the data there. Your initialization function should return a pointer to
-that data. This pointer will be supplied by tempd as the second
+that data. This pointer will be supplied by trmc2d as the second
 parameter of every <code><i>convert</i>()</code> call. If initialization
 fails (and only in this case), you should return <code>NULL</code>.</p>
 
@@ -118,8 +118,8 @@ gcc -fPIC -shared -nostartfiles file1.o file2.o
 
 <h2>Using</h2>
 
-<p>Put you plugin in the tempd plugin directory (/usr/local/lib/tempd by
-default) and send to tempd the command:</p>
+<p>Put you plugin in the trmc2d plugin directory (/usr/local/lib/trmc2d
+by default) and send to trmc2d the command:</p>
 
 <blockquote><p>channel<i>i</i>:conversion
 <i>my_plugin convert init_string</i></p></blockquote>

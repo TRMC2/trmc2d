@@ -1,6 +1,6 @@
-# tempd: a temperature daemon
+# trmc2d: a temperature daemon
 
-This package contains the source code of tempd: a temperature
+This package contains the source code of trmc2d: a temperature
 daemon, based on libtrmc2, for driving the TRMC2 temperature
 controller. It also has the code of two plugins for converting raw
 measurements to temperature: interpolate.so interpolates over
@@ -9,12 +9,12 @@ written as a symbolic expression.
 
 ## Requirements
 
-For building tempd, you will need libtrmc2 and its associated header
+For building trmc2d, you will need libtrmc2 and its associated header
 file Trmc.h installed somewhere your compiler can find them. If they
 are installed somewhere gcc won't look, you will have to edit the
 Makefile and add the appropriate -I and -L options.
 
-For having readline support in tempd's shell mode, you will also
+For having readline support in trmc2d's shell mode, you will also
 need libreadline and libtermcap, which a quite standard.
 
 For interpolate.so to provide interpolation methods other than
@@ -52,20 +52,20 @@ the following:
 
 and comment-out whichever lines you have to.
 
-Then type `make`. You will get tempd, interpolate.so and, unless you
+Then type `make`. You will get trmc2d, interpolate.so and, unless you
 disabled it, expression.so.
 
 ## Running
 
-Type `tempd -d` as root, then connect a client to TCP port 5025.
+Type `trmc2d -d` as root, then connect a client to TCP port 5025.
 
-Or type `tempd -s` as root and talk to it at the keyboard.
+Or type `trmc2d -s` as root and talk to it at the keyboard.
 
 ## Files
 
 * README.md:          this file
 * doc/:               documentation directory
-  * protocol.html:    the tempd language
+  * protocol.html:    the trmc2d language
   * plugins.html:     writing plugins
 * Makefile:           needed for `make`
 * plugins/:           plugins for converting raw values to temperature
@@ -73,7 +73,7 @@ Or type `tempd -s` as root and talk to it at the keyboard.
   * interpolate-linear.c:  linear interpolation
   * interpolate.c:         interpolation based on GSL
   * expression.c:          expression evaluation
-* \*.c, \*.h:           source code of tempd
+* \*.c, \*.h:           source code of trmc2d
 
 ## Bugs
 
@@ -82,42 +82,42 @@ The program is in beta testing.
 Basic temperature measurements should work, as in the following
 example session:
 
-    $ sudo ./tempd -s
-    tempd> *idn?
-    tempd temperature server, Institut NEEL, Nov 2016
-    tempd> channel:count?
-    tempd> error?
+    $ sudo ./trmc2d -s
+    trmc2d> *idn?
+    trmc2d temperature server, Institut NEEL, Nov 2016
+    trmc2d> channel:count?
+    trmc2d> error?
     _TRMC_NOT_INITIALIZED
-    tempd> start 50
-    tempd> channel:count?
+    trmc2d> start 50
+    trmc2d> channel:count?
     7
-    tempd> channel2:type?
+    trmc2d> channel2:type?
     6 (_TYPEE)
-    tempd> channel2:voltage:range 1e-5
-    tempd> channel2:current:range 8e-7
-    tempd> channel2:priority 2
-    tempd> channel2:priority?
+    trmc2d> channel2:voltage:range 1e-5
+    trmc2d> channel2:current:range 8e-7
+    trmc2d> channel2:priority 2
+    trmc2d> channel2:priority?
     2 (_ALWAYS)
-    tempd> channel2:measure?
+    trmc2d> channel2:measure?
     9.89719
-    tempd> quit
+    trmc2d> quit
     $
 
 You can also `telnet localhost 5025` and have the same kind of
-dialog with tempd.
+dialog with trmc2d.
 
 You can optionally use a Unix domain socket instead of a TCP port
-but then, if you kill tempd instead of asking it to `quit`, it will
-not remove the socket. Next time you try to run tempd, it will exit
+but then, if you kill trmc2d instead of asking it to `quit`, it will
+not remove the socket. Next time you try to run trmc2d, it will exit
 immediately and you will see no error message... unless you look in
 your system's logs:
 
 ```text
-# grep tempd /var/log/messages
-Jul 16 22:18:05 bonet tempd: bind: Address already in use
+# grep trmc2d /var/log/messages
+Jul 16 22:18:05 bonet trmc2d: bind: Address already in use
 ```
 
-Just remove the socket and restart tempd.
+Just remove the socket and restart trmc2d.
 
 ## Author
 

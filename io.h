@@ -1,5 +1,5 @@
 /*
- * Network and IO functions for tempd. Mostly stolen from fieldd.
+ * Network and IO functions for trmc2d. Mostly stolen from fieldd.
  */
 
 /*

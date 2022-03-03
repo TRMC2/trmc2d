@@ -1,5 +1,5 @@
 /*
- * interpolate.c: tempd plugin for interpolation, based on GSL.
+ * interpolate.c: trmc2d plugin for interpolation, based on GSL.
  */
 
 #include <stdio.h>

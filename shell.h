@@ -1,5 +1,5 @@
 /*
- * Command-line interface for tempd.
+ * Command-line interface for trmc2d.
  */
 
 extern int force_color_prompt;

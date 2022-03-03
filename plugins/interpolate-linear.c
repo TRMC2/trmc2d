@@ -1,5 +1,5 @@
 /*
- * interpolate-linear.c: tempd plugin for linear interpolation.
+ * interpolate-linear.c: trmc2d plugin for linear interpolation.
  */
 
 #include <stdio.h>

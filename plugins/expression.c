@@ -1,5 +1,5 @@
 /*
- * expression.c: tempd plugin for evaluating expressions, based on
+ * expression.c: trmc2d plugin for evaluating expressions, based on
  * libmatheval.
  *
  * Syntax:

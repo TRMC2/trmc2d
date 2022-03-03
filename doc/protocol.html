@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>tempd command set</title>
+    <title>trmc2d command set</title>
     <style type="text/css">
         body { background: white; font-family: sans-serif;
             margin-left: 3%; margin-right: 3% }
@@ -22,14 +22,14 @@
     </style>
 </head><body>
 
-<h1>tempd command set</h1>
+<h1>trmc2d command set</h1>
 
-<p>tempd speaks a SCPI-like language. Commands should be sent to tempd
+<p>trmc2d speaks a SCPI-like language. Commands should be sent to trmc2d
 as lines of ASCII text on a network (or local, via Unix domain sockets)
-connection. Answers are sent by tempd as lines of ASCII text on the same
+connection. Answers are sent by trmc2d as lines of ASCII text on the same
 connection. The input line terminator can be &lt;CR&gt; (ASCII carriage
 return), &lt;LF&gt; (ASCII line feed) or &lt;CRLF&gt; (CR followed by
-LF). On output, tempd sends &lt;CRLF&gt; as line terminator.</p>
+LF). On output, trmc2d sends &lt;CRLF&gt; as line terminator.</p>
 
 
 <h2>Syntax</h2>
@@ -72,7 +72,7 @@ should add the last non-indented word as a prefix. For example, the
 command for querying the type of board <i>i</i> is
 <code>board<i>i</i>:type?</code> (second table). Brackets ([]) around a
 parameter mean the parameter is optional. <strong>Do not include the
-brackets</strong> in the commands you send to tempd.</p>
+brackets</strong> in the commands you send to trmc2d.</p>
 
 
 <h2>General purpose commands</h2>
@@ -123,7 +123,7 @@ brackets</strong> in the commands you send to tempd.</p>
 <li>If there is an error, the error message is sent immediately instead
 of being stored in an error stack.</li>
 
-<li>If it is an imperative command, tempd implicitly executes the
+<li>If it is an imperative command, trmc2d implicitly executes the
 corresponding query command after the imperative command. For example, a
 <code>channel<i>i</i>:mode</code> command (which sets the channel mode)
 is implicitly followed by a <code>channel<i>i</i>:mode?</code> command
@@ -287,7 +287,7 @@ verbose mode.</li>
 <h3>Temperature conversion</h3>
 
 <p>In order to convert the raw measurement data (in ohms, volts or
-farads, depending on the sensor type) to temperature (in kelvins), tempd
+farads, depending on the sensor type) to temperature (in kelvins), trmc2d
 will need a conversion function. The function has to be loaded from a
 plugin, i.e. a shared library. You have the option to either
 <a href="plugins.html">write your own plugin</a> or use one of the two
@@ -311,7 +311,7 @@ may need.</dd>
 
 <p>For using the provided interpolation plugin, you need a table with
 (raw measurement, temperature) pairs in tab-separated-values format.
-Then send to tempd the command</p>
+Then send to trmc2d the command</p>
 
 <blockquote><p>channel<i>i</i>:conversion interpolate, spline,
 <i>table.tsv</i></p></blockquote>
@@ -476,7 +476,7 @@ using a few simple translation rules:</p>
 functions, with the omission of the suffix "TRMC".</li>
 
 <li>The first parameter to each command is an integer request identifier
-that will be returned in tempd's answer but is otherwise ignored. The
+that will be returned in trmc2d's answer but is otherwise ignored. The
 following parameters are the input arguments to the library
 function.</li>
 

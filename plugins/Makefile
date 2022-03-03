@@ -1,10 +1,10 @@
 #
-# Makefile for the tempd temperature conversion plugins.
+# Makefile for the trmc2d temperature conversion plugins.
 #
 
 # The following variables are exported by the top-level make:
 #WITH_GSL = yes
-PLUGINDIR ?= /usr/local/lib/tempd
+PLUGINDIR ?= /usr/local/lib/trmc2d
 CC        ?= gcc
 CFLAGS    ?= -O2 -ggdb -Wall -Wextra
 

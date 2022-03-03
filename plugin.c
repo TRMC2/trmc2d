@@ -86,7 +86,7 @@ static const Etalon f_table[NB_CONVERSION_FCS] = {
 };
 
 #ifndef DEFAULT_PLUGIN_DIR
-# define DEFAULT_PLUGIN_DIR "/usr/local/lib/tempd"
+# define DEFAULT_PLUGIN_DIR "/usr/local/lib/trmc2d"
 #endif
 
 /* argv = { plugin, convert_name [, init_data] } */
@@ -108,7 +108,7 @@ Etalon convert_init(int argc, char **argv)
     c = &conversion[n];
 
     /* Build library and function names. */
-    char *plugindir = getenv("TEMPD_PLUGINS");
+    char *plugindir = getenv("TRMC2D_PLUGINS");
     if (!plugindir)
         plugindir = DEFAULT_PLUGIN_DIR;
     strcpy(dlname, plugindir);

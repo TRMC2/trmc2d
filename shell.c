@@ -23,7 +23,7 @@
      * libreadline requires sequences of non printing characters to be
      * enclosed between \1 and \2.
      */
-    #define COLOR_TEMPD   "\1\x1b[33m\2"
+    #define COLOR_TRMC2D  "\1\x1b[33m\2"
     #define COLOR_ARROW   "\1\x1b[1;34m\2"
     #define COLOR_DEFAULT "\1\x1b[0m\2"
 
@@ -35,7 +35,7 @@
 
     #define LINE_LENGTH 1024
 
-    #define COLOR_TEMPD   "\x1b[33m"
+    #define COLOR_TRMC2D  "\x1b[33m"
     #define COLOR_ARROW   "\x1b[1;34m"
     #define COLOR_DEFAULT "\x1b[0m"
 
@@ -135,9 +135,9 @@ int shell(void)
     const char *term = getenv("TERM");
     const char *prompt;
     if (force_color_prompt || (term && strstr(term, "color")))
-        prompt = COLOR_TEMPD"tempd"COLOR_ARROW">"COLOR_DEFAULT" ";
+        prompt = COLOR_TRMC2D"trmc2d"COLOR_ARROW">"COLOR_DEFAULT" ";
     else
-        prompt = "tempd> ";
+        prompt = "trmc2d> ";
 
     /* Process commands. */
     rl_callback_handler_install(prompt, handle_line);

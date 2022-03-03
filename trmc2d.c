@@ -1,5 +1,5 @@
 /*
- * tempd: TRMC2 temperature daemon.
+ * trmc2d: TRMC2 temperature daemon.
  *
  * This program controls a TRMC2 temperature controller. At
  * initialization, it binds to a TCP port (default: 5025) or,
@@ -26,7 +26,7 @@
 #include "shell.h"
 
 static const char cmdline_help[] =
-"Usage: tempd [-h] [-s] [-p port] [-u name] [-d]\n"
+"Usage: trmc2d [-h] [-s] [-p port] [-u name] [-d]\n"
 "Options:\n"
 "    -h       print this message\n"
 "    -s       shell mode (talk to stdin/stdout)\n"
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
         return shell();
 
     /* Log messages via syslog. */
-    openlog("tempd", 0, LOG_DAEMON);
+    openlog("trmc2d", 0, LOG_DAEMON);
 
     /* Get a listening socket. */
     ls = get_socket(domain, port, socket_name);

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Provide a version string to be used by tempd when answering the
+# Provide a version string to be used by trmc2d when answering the
 # "*idn?" command. Ideally, the string has the form
 #
 #     02468ac (2018-02-28 11:22:33 +0100)
