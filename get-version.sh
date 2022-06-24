@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Provide a version string to be used by trmc2d when answering the
 # "*idn?" command. Ideally, the string has the form

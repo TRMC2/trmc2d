@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Makefile for the trmc2d temperature daemon.
 #

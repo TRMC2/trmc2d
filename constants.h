@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * Text <-> value mappings for the #defines and enums of Trmc.h.
  */

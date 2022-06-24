@@ -119,6 +119,23 @@ Jul 16 22:18:05 bonet trmc2d: bind: Address already in use
 
 Just remove the socket and restart trmc2d.
 
-## Author
+## Copyright
 
-Edgar Bonet <bonet@grenoble.cnrs.fr>
+Copyright (C) 2022 CNRS, Institut NEEL Grenoble.
+
+Written by Edgar Bonet Orozco.
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+The documentation (contents of the `doc` directory) is licensed under a
+[Creative Commons Attribution-ShareAlike 4.0 International License][cc].
+
+[cc]: http://creativecommons.org/licenses/by-sa/4.0/

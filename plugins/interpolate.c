@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * interpolate.c: trmc2d plugin for interpolation, based on GSL.
  */

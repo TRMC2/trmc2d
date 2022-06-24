@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * Network and IO functions for trmc2d. Mostly stolen from fieldd.
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * expression.c: trmc2d plugin for evaluating expressions, based on
  * libmatheval.

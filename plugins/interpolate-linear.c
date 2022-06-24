@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * interpolate-linear.c: trmc2d plugin for linear interpolation.
  */

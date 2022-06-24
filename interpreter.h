@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * Interpreter for the TRMC2 language. Include "parse.h" before this.
  */
