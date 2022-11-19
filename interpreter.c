@@ -525,11 +525,9 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
             break;
         case c_conversion:
             channel_extras = get_channel_extras(index);
-            if (!channel_extras->conversion) {
-                report_error(client, "Channel has no conversion.");
-                return 1;
-            }
-            queue_output(client, "%s\r\n", channel_extras->conversion);
+            const char *conversion = channel_extras->conversion;
+            if (!conversion) conversion = "none";
+            queue_output(client, "%s\r\n", conversion);
             break;
         case format:
             channel_extras = get_channel_extras(index);
