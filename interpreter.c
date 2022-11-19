@@ -361,7 +361,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 report_error(client, "Read-only parameter");
                 return 1;
             case c_conversion:
-                n_param_ok = cmd->n_param == 2 || cmd->n_param == 3;
+                n_param_ok = cmd->n_param >= 1 && cmd->n_param <= 3;
                 break;
             case format:
                 n_param_ok = cmd->n_param >= 1;
@@ -417,10 +417,28 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 break;
             case c_conversion:
 
-                /* Remember the conversion parameters. */
+                /* Only the "none" conversion takes a single parameter. */
+                if (cmd->n_param == 1
+                        && strcmp(cmd->param[0], "none") != 0) {
+                    report_error(client, "Invalid conversion command.");
+                    return 1;
+                }
+
+                /* Remove the old conversion. */
                 channel_extras = get_channel_extras(index);
-                if (channel_extras->conversion)
+                if (channel_extras->conversion) {
                     free(channel_extras->conversion);
+                    channel_extras->conversion = NULL;
+                }
+                if (channel.Etalon) {
+                    convert_cleanup(channel.Etalon);
+                    channel.Etalon = NULL;
+                }
+
+                /* If the new conversion is "none", we are done. */
+                if (cmd->n_param == 1) break;
+
+                /* Remember the conversion parameters. */
                 size_t sz = 0;
                 for (int i = 0; i < cmd->n_param; i++)
                     sz += strlen(cmd->param[i]) + 1;
@@ -432,8 +450,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                         strcat(channel_extras->conversion, ",");
                 }
 
-                /* Use the give conversion. */
-                if (channel.Etalon) convert_cleanup(channel.Etalon);
+                /* Use the given conversion. */
                 channel.Etalon = convert_init(cmd->n_param, cmd->param);
                 if (!channel.Etalon) {
                     report_error(client, "Conversion initialization failed.");
