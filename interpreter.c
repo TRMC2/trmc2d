@@ -436,7 +436,7 @@ static int channel_handler(void *client, int cmd_data, parsed_command *cmd)
                 }
 
                 /* If the new conversion is "none", we are done. */
-                if (cmd->n_param == 1) break;
+                if (cmd->n_param <= 1) break;  // `<=' prevents a gcc warning
 
                 /* Remember the conversion parameters. */
                 size_t sz = 0;
