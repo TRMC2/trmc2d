@@ -10,8 +10,9 @@ CC        ?= gcc
 CFLAGS    ?= -O2 -ggdb -Wall -Wextra
 
 # Global options.
-CFLAGS  += -fPIC -shared -nostartfiles
-LDLIBS  =
+%.so: CFLAGS  += -fPIC -shared -nostartfiles
+%.so: LDLIBS  =
+test-plugin: LDLIBS = -ldl
 COMPILE = $(CC) $(CFLAGS) $< $(LDLIBS) -o $@
 
 # Plugin-specific options.
@@ -39,6 +40,9 @@ endif
 %.so:   %.c
 		$(COMPILE)
 
+test-plugin: test-plugin.c
+		$(COMPILE)
+
 install: $(PLUGINS)
 		mkdir -p $(PLUGINDIR)
 		install $(PLUGINS) $(PLUGINDIR)
@@ -48,6 +52,6 @@ uninstall:
 		rmdir --ignore-fail-on-non-empty $(PLUGINDIR)
 
 clean:
-		rm -f $(PLUGINS)
+		rm -f $(PLUGINS) test-plugin
 
 .PHONY: all clean

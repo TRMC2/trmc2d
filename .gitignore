@@ -5,4 +5,5 @@ tags
 interpolate.so
 interpolate-linear.so
 expression.so
+test-plugin
 trmc2d
