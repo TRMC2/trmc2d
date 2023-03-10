@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_errno.h>
 
 #define NAN (0.0/0.0)   /* Not a Number. */
 
@@ -57,6 +58,9 @@ static void *init(const gsl_interp_type *type, char *init_string)
         if (items != 2) goto error;
         n++;
     }
+
+    /* Ask the GSL to not abort on errors. */
+    gsl_set_error_handler_off();
 
     /* Init data. */
     data = malloc(sizeof *data);
