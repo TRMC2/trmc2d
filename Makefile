@@ -25,18 +25,19 @@ WITH_GSL = yes
 WITH_MATHEVAL = yes
 
 # Global options.
-CC      = gcc
-CFLAGS  = -std=gnu11 -O2 -ggdb -Wall -Wextra
-LDFLAGS =
+CC       = gcc
+CPPFLAGS =
+CFLAGS   = -std=gnu11 -O2 -ggdb -Wall -Wextra
+LDFLAGS  =
 
 # This is only useful if you modified INSTALLDIR or PLUGINDIR:
-#CFLAGS += -DDEFAULT_PLUGIN_DIR=$(PLUGINDIR)
+#CPPFLAGS += -DDEFAULT_PLUGIN_DIR=$(PLUGINDIR)
 
 # This is the place to add -I or -L options if you need them to find
 # libtrmc2. For example, if libtrmc2 is in /usr/local and the compiler
 # does not find it, you would use:
-#CFLAGS  += -I/usr/local/include
-#LDFLAGS += -L/usr/local/lib
+#CPPFLAGS += -I/usr/local/include
+#LDFLAGS  += -L/usr/local/lib
 
 # End of user-accessible settings.
 ########################################################################
@@ -45,15 +46,15 @@ OBJS = trmc2d.o shell.o io.o interpreter.o parse.o constants.o plugin.o
 LDLIBS = -ltrmc2 -ldl -lm
 
 ifdef WITH_READLINE
-    shell.o: CFLAGS += -DUSE_READLINE
+    shell.o: CPPFLAGS += -DUSE_READLINE
     trmc2d:  LDLIBS += -lreadline -ltermcap
 endif
 
 # Get version information.
-interpreter.o: CFLAGS += -DVERSION='"$(shell ./get-version.sh)"'
+interpreter.o: CPPFLAGS += -DVERSION='"$(shell ./get-version.sh)"'
 
 # Export to the `plugins' sub-make.
-export CC CFLAGS WITH_GSL WITH_MATHEVAL PLUGINDIR
+export CC CPPFLAGS CFLAGS WITH_GSL WITH_MATHEVAL PLUGINDIR
 
 
 ########################################################################
@@ -71,7 +72,7 @@ tags:   *.[ch]
 		ctags $^
 
 %.o:    %.c
-		$(CC) $(CFLAGS) -c $<
+		$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
 install: trmc2d
 		mkdir -p $(BINDIR)

@@ -13,7 +13,7 @@ CFLAGS    ?= -O2 -ggdb -Wall -Wextra
 %.so: CFLAGS  += -fPIC -shared -nostartfiles
 %.so: LDLIBS  =
 test-plugin: LDLIBS = -ldl
-COMPILE = $(CC) $(CFLAGS) $< $(LDLIBS) -o $@
+COMPILE = $(CC) $(CPPFLAGS) $(CFLAGS) $< $(LDLIBS) -o $@
 
 # Plugin-specific options.
 ifdef WITH_GSL
