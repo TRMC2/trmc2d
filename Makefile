@@ -78,15 +78,17 @@ install: trmc2d
 		mkdir -p $(BINDIR)
 		install -s trmc2d $(BINDIR)
 		$(MAKE) -C plugins install
-		install -m 644 trmc2d.service /etc/systemd/system
-		systemctl enable trmc2d
+		-[ $$(id -u) = 0 ] && \
+			install -m 644 trmc2d.service /etc/systemd/system && \
+			systemctl enable trmc2d
 		@echo "\n*** trmc2d successfully installed. ***"
-		@echo "To start trmc2d now, type: sudo systemctl start trmc2d"
+		@[ $$(id -u) = 0 ] && \
+		echo "To start trmc2d now, type: sudo systemctl start trmc2d" || true
 
 uninstall:
-		systemctl stop trmc2d || true
-		systemctl disable trmc2d || true
-		rm -f /etc/systemd/system/trmc2d.service
+		-[ $$(id -u) = 0 ] && systemctl stop trmc2d
+		-[ $$(id -u) = 0 ] && systemctl disable trmc2d
+		-[ $$(id -u) = 0 ] && rm -f /etc/systemd/system/trmc2d.service
 		rm -f $(BINDIR)/trmc2d
 		$(MAKE) -C plugins uninstall
 
