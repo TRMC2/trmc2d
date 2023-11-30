@@ -46,12 +46,12 @@ OBJS = trmc2d.o shell.o io.o interpreter.o parse.o constants.o plugin.o
 LDLIBS = -ltrmc2 -ldl -lm
 
 ifdef WITH_READLINE
-    shell.o: CPPFLAGS += -DUSE_READLINE
+    shell.o: override CPPFLAGS += -DUSE_READLINE
     trmc2d:  LDLIBS += -lreadline -ltermcap
 endif
 
 # Get version information.
-interpreter.o: CPPFLAGS += -DVERSION='"$(shell ./get-version.sh)"'
+interpreter.o: override CPPFLAGS += -DVERSION='"$(shell ./get-version.sh)"'
 
 # Export to the `plugins' sub-make.
 export CC CPPFLAGS CFLAGS WITH_GSL WITH_MATHEVAL PLUGINDIR
